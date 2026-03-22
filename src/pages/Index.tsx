@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AppCard from '@/components/AppCard';
-import { Flame, Clock, DollarSign, Search } from 'lucide-react';
+import { Flame, Clock, ShoppingBag, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
-type Tab = 'hot' | 'new' | 'monetized';
+type Tab = 'hot' | 'new' | 'for_sale';
 
 const tabs: { key: Tab; label: string; icon: typeof Flame }[] = [
   { key: 'hot', label: '热门应用', icon: Flame },
   { key: 'new', label: '最新发布', icon: Clock },
-  { key: 'monetized', label: '可变现项目', icon: DollarSign },
+  { key: 'for_sale', label: '💸 可购买项目', icon: ShoppingBag },
 ];
 
 export default function Index() {
