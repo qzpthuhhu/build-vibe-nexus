@@ -29,12 +29,17 @@ export default function AdminDashboard() {
   const { data: apps = [] } = useQuery({
     queryKey: ['admin-apps', statusFilter],
     queryFn: async () => {
-      let query = supabase.from('apps').select('*, profiles!apps_user_id_fkey(display_name)') as any;
+      let query = supabase.from('apps').select('*') as any;
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
-      const { data } = await query.order('created_at', { ascending: false }).limit(50);
-      return data || [];
+      const { data: appsData } = await query.order('created_at', { ascending: false }).limit(50);
+      if (!appsData || appsData.length === 0) return [];
+      // Fetch profile display names for all user_ids
+      const userIds = [...new Set(appsData.map((a: any) => a.user_id))] as string[];
+      const { data: profiles } = await supabase.from('profiles').select('user_id, display_name').in('user_id', userIds);
+      const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p.display_name]));
+      return appsData.map((a: any) => ({ ...a, profile_display_name: profileMap[a.user_id] || null }));
     },
     enabled: isAdmin,
   });
@@ -42,12 +47,17 @@ export default function AdminDashboard() {
   const { data: userList = [] } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: profilesData } = await supabase
         .from('profiles')
-        .select('*, user_roles(role)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
-      return data || [];
+      if (!profilesData || profilesData.length === 0) return [];
+      const userIds = profilesData.map((p: any) => p.user_id);
+      const { data: roles } = await supabase.from('user_roles').select('user_id, role').in('user_id', userIds);
+      const roleMap: Record<string, any[]> = {};
+      (roles || []).forEach((r: any) => { (roleMap[r.user_id] = roleMap[r.user_id] || []).push(r); });
+      return profilesData.map((p: any) => ({ ...p, user_roles: roleMap[p.user_id] || [] }));
     },
     enabled: isAdmin && tab === 'users',
   });
@@ -195,7 +205,7 @@ export default function AdminDashboard() {
                         {app.is_for_sale && <span className="text-[10px] px-1.5 rounded bg-emerald-500/10 text-emerald-400">出售</span>}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>提交者：{app.profiles?.display_name || '未知'}</span>
+                        <span>提交者：{app.profile_display_name || '未知'}</span>
                         <span>阶段：{app.monetization_stage || '未设置'}</span>
                         <span>{new Date(app.created_at).toLocaleDateString('zh-CN')}</span>
                       </div>
