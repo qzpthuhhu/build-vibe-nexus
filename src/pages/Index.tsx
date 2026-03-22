@@ -47,16 +47,22 @@ export default function Index() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/50">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] to-transparent" />
-        <div className="container relative py-16 md:py-24 text-center space-y-6">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] animate-fade-up">
-            发现下一个
-            <span className="text-gradient"> AI 应用</span>
+        {/* Ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full opacity-[0.07] blur-[120px]"
+          style={{ background: 'linear-gradient(135deg, hsl(142 72% 46%), hsl(271 81% 56%), hsl(330 81% 60%))' }}
+        />
+        <div className="container relative py-20 md:py-28 text-center space-y-7">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.08] animate-fade-up">
+            Show Your{' '}
+            <span className="text-gradient">Vibe Coding Apps</span>
           </h1>
-          <p className="mx-auto max-w-lg text-base md:text-lg text-muted-foreground animate-fade-up stagger-1">
-            探索、发布、分享由 AI 驱动的创新应用
+          <p className="mx-auto max-w-md text-base md:text-lg text-foreground/80 font-medium animate-fade-up stagger-1">
+            秀出你的 AI 应用，获取用户与反馈
           </p>
-          <div className="mx-auto max-w-md relative animate-fade-up stagger-2">
+          <p className="mx-auto max-w-lg text-sm text-muted-foreground animate-fade-up stagger-2">
+            探索、发布、分享 AI 驱动的创新应用
+          </p>
+          <div className="mx-auto max-w-md relative animate-fade-up stagger-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="搜索 AI 应用..."

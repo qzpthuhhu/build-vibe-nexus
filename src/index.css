@@ -6,47 +6,47 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    --background: 160 20% 4%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 6%;
+    --card: 160 15% 7%;
     --card-foreground: 0 0% 98%;
-    --card-hover: 240 10% 8%;
+    --card-hover: 160 12% 10%;
 
-    --popover: 240 10% 6%;
+    --popover: 160 15% 7%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 142 72% 50%;
-    --primary-foreground: 240 10% 3.9%;
+    --primary: 142 72% 46%;
+    --primary-foreground: 160 20% 4%;
 
-    --secondary: 240 5% 14%;
+    --secondary: 160 10% 13%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 5% 14%;
-    --muted-foreground: 240 5% 55%;
+    --muted: 160 8% 13%;
+    --muted-foreground: 160 5% 52%;
 
-    --accent: 240 5% 14%;
+    --accent: 160 8% 13%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 5% 16%;
-    --input: 240 5% 16%;
-    --ring: 142 72% 50%;
+    --border: 160 8% 14%;
+    --input: 160 8% 14%;
+    --ring: 142 72% 46%;
 
     --radius: 0.625rem;
 
-    --sidebar-background: 240 10% 5%;
+    --sidebar-background: 160 15% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 72% 50%;
-    --sidebar-primary-foreground: 240 10% 3.9%;
-    --sidebar-accent: 240 5% 14%;
+    --sidebar-primary: 142 72% 46%;
+    --sidebar-primary-foreground: 160 20% 4%;
+    --sidebar-accent: 160 8% 13%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 5% 16%;
-    --sidebar-ring: 142 72% 50%;
+    --sidebar-border: 160 8% 14%;
+    --sidebar-ring: 142 72% 46%;
 
-    --success: 142 72% 50%;
+    --success: 142 72% 46%;
     --warning: 38 92% 50%;
     --info: 217 91% 60%;
   }
@@ -74,7 +74,13 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-400;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(142 72% 46%), hsl(271 81% 56%), hsl(330 81% 60%));
+  }
+
+  .text-gradient-subtle {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(142 72% 50%), hsl(160 50% 60%));
   }
 
   .glass-card {
@@ -87,7 +93,7 @@
 
   .hover-lift:hover {
     @apply -translate-y-0.5;
-    box-shadow: 0 8px 30px -12px hsl(var(--primary) / 0.15);
+    box-shadow: 0 8px 30px -12px hsl(142 72% 46% / 0.15);
   }
 }
 
