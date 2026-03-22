@@ -269,6 +269,21 @@ export default function AppDetail() {
           </p>
         </div>
 
+        {/* For Sale */}
+        {(app as any).is_for_sale && (
+          <div className="animate-fade-up stagger-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 space-y-3">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              💸 项目出售中
+            </h2>
+            {(app as any).price && (
+              <p className="text-sm"><span className="text-muted-foreground">售价：</span><span className="font-medium text-emerald-400">{(app as any).price}</span></p>
+            )}
+            {(app as any).contact_info && (
+              <p className="text-sm"><span className="text-muted-foreground">联系方式：</span><span className="font-medium">{(app as any).contact_info}</span></p>
+            )}
+          </div>
+        )}
+
         {/* Prompt */}
         {app.prompt && (
           <div className="animate-fade-up stagger-3 glass-card overflow-hidden">

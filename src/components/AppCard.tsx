@@ -27,7 +27,7 @@ export default function AppCard({ app, index = 0 }: AppCardProps) {
           </div>
         )}
         {(app as any).is_for_sale && (
-          <span className="absolute top-2.5 right-2.5 rounded-md bg-emerald-600/90 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+          <span className="absolute top-2.5 right-2.5 rounded-md bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
             💸 出售中
           </span>
         )}
