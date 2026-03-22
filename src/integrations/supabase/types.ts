@@ -89,19 +89,25 @@ export type Database = {
       }
       apps: {
         Row: {
+          access_type: string | null
+          android_download_url: string | null
+          app_store_url: string | null
           approved_at: string | null
           boost_expires_at: string | null
           contact_info: string | null
           cover_image: string | null
           created_at: string
           description: string | null
+          experience_url: string | null
           favorites_count: number
           id: string
           is_boosted: boolean
           is_for_sale: boolean
           is_monetized: boolean
           likes_count: number
+          mini_program_qr_url: string | null
           monetization_stage: string | null
+          platform_type: string | null
           price: string | null
           prompt: string | null
           rejection_reason: string | null
@@ -117,19 +123,25 @@ export type Database = {
           views: number
         }
         Insert: {
+          access_type?: string | null
+          android_download_url?: string | null
+          app_store_url?: string | null
           approved_at?: string | null
           boost_expires_at?: string | null
           contact_info?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
+          experience_url?: string | null
           favorites_count?: number
           id?: string
           is_boosted?: boolean
           is_for_sale?: boolean
           is_monetized?: boolean
           likes_count?: number
+          mini_program_qr_url?: string | null
           monetization_stage?: string | null
+          platform_type?: string | null
           price?: string | null
           prompt?: string | null
           rejection_reason?: string | null
@@ -145,19 +157,25 @@ export type Database = {
           views?: number
         }
         Update: {
+          access_type?: string | null
+          android_download_url?: string | null
+          app_store_url?: string | null
           approved_at?: string | null
           boost_expires_at?: string | null
           contact_info?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
+          experience_url?: string | null
           favorites_count?: number
           id?: string
           is_boosted?: boolean
           is_for_sale?: boolean
           is_monetized?: boolean
           likes_count?: number
+          mini_program_qr_url?: string | null
           monetization_stage?: string | null
+          platform_type?: string | null
           price?: string | null
           prompt?: string | null
           rejection_reason?: string | null
