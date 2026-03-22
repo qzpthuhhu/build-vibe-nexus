@@ -14,8 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_media: {
+        Row: {
+          app_id: string
+          created_at: string
+          file_name: string | null
+          file_url: string
+          id: string
+          media_type: string
+          sort_order: number
+        }
+        Insert: {
+          app_id: string
+          created_at?: string
+          file_name?: string | null
+          file_url: string
+          id?: string
+          media_type: string
+          sort_order?: number
+        }
+        Update: {
+          app_id?: string
+          created_at?: string
+          file_name?: string | null
+          file_url?: string
+          id?: string
+          media_type?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_media_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_review_logs: {
+        Row: {
+          action: string
+          app_id: string
+          created_at: string
+          id: string
+          note: string | null
+          operator_id: string
+        }
+        Insert: {
+          action: string
+          app_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          operator_id: string
+        }
+        Update: {
+          action?: string
+          app_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          operator_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_review_logs_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       apps: {
         Row: {
+          approved_at: string | null
           boost_expires_at: string | null
           contact_info: string | null
           cover_image: string | null
@@ -30,7 +104,10 @@ export type Database = {
           monetization_stage: string | null
           price: string | null
           prompt: string | null
+          rejection_reason: string | null
+          review_note: string | null
           status: Database["public"]["Enums"]["app_status"]
+          submitted_at: string | null
           tags: string[] | null
           tech_stack: string[] | null
           title: string
@@ -40,6 +117,7 @@ export type Database = {
           views: number
         }
         Insert: {
+          approved_at?: string | null
           boost_expires_at?: string | null
           contact_info?: string | null
           cover_image?: string | null
@@ -54,7 +132,10 @@ export type Database = {
           monetization_stage?: string | null
           price?: string | null
           prompt?: string | null
+          rejection_reason?: string | null
+          review_note?: string | null
           status?: Database["public"]["Enums"]["app_status"]
+          submitted_at?: string | null
           tags?: string[] | null
           tech_stack?: string[] | null
           title: string
@@ -64,6 +145,7 @@ export type Database = {
           views?: number
         }
         Update: {
+          approved_at?: string | null
           boost_expires_at?: string | null
           contact_info?: string | null
           cover_image?: string | null
@@ -78,7 +160,10 @@ export type Database = {
           monetization_stage?: string | null
           price?: string | null
           prompt?: string | null
+          rejection_reason?: string | null
+          review_note?: string | null
           status?: Database["public"]["Enums"]["app_status"]
+          submitted_at?: string | null
           tags?: string[] | null
           tech_stack?: string[] | null
           title?: string
@@ -245,15 +330,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       increment_app_views: { Args: { app_uuid: string }; Returns: undefined }
     }
     Enums: {
-      app_status: "pending" | "approved" | "rejected"
+      app_role: "user" | "admin" | "super_admin"
+      app_status: "pending" | "approved" | "rejected" | "draft" | "offline"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -381,7 +495,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_status: ["pending", "approved", "rejected"],
+      app_role: ["user", "admin", "super_admin"],
+      app_status: ["pending", "approved", "rejected", "draft", "offline"],
     },
   },
 } as const
