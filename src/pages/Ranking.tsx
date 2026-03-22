@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AppCard from '@/components/AppCard';
-import { Trophy, Heart, Bookmark, DollarSign } from 'lucide-react';
+import { Trophy, Heart, Bookmark, ShoppingBag } from 'lucide-react';
 
-type Tab = 'likes' | 'favorites' | 'monetized';
+type Tab = 'likes' | 'favorites' | 'for_sale';
 
 const tabs: { key: Tab; label: string; icon: typeof Trophy }[] = [
   { key: 'likes', label: '热门榜', icon: Heart },
   { key: 'favorites', label: '收藏榜', icon: Bookmark },
-  { key: 'monetized', label: '可变现榜', icon: DollarSign },
+  { key: 'for_sale', label: '可购买榜', icon: ShoppingBag },
 ];
 
 export default function Ranking() {
