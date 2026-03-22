@@ -47,12 +47,17 @@ export default function AdminDashboard() {
   const { data: userList = [] } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: profilesData } = await supabase
         .from('profiles')
-        .select('*, user_roles(role)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
-      return data || [];
+      if (!profilesData || profilesData.length === 0) return [];
+      const userIds = profilesData.map((p: any) => p.user_id);
+      const { data: roles } = await supabase.from('user_roles').select('user_id, role').in('user_id', userIds);
+      const roleMap: Record<string, any[]> = {};
+      (roles || []).forEach((r: any) => { (roleMap[r.user_id] = roleMap[r.user_id] || []).push(r); });
+      return profilesData.map((p: any) => ({ ...p, user_roles: roleMap[p.user_id] || [] }));
     },
     enabled: isAdmin && tab === 'users',
   });
