@@ -27,7 +27,7 @@ export default function AppCard({ app, index = 0 }: AppCardProps) {
           </div>
         )}
         {app.is_monetized && (
-          <span className="absolute top-2.5 right-2.5 rounded-md bg-amber-500/90 px-2 py-0.5 text-xs font-medium text-black backdrop-blur-sm">
+          <span className="absolute top-2.5 right-2.5 rounded-md bg-[hsl(var(--warning))] px-2 py-0.5 text-xs font-medium text-primary-foreground backdrop-blur-sm">
             💰 可变现
           </span>
         )}
