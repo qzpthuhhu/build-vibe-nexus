@@ -26,9 +26,9 @@ export default function AppCard({ app, index = 0 }: AppCardProps) {
             <span className="text-3xl font-bold text-primary/30">{app.title[0]}</span>
           </div>
         )}
-        {app.is_monetized && (
-          <span className="absolute top-2.5 right-2.5 rounded-md bg-[hsl(var(--warning))] px-2 py-0.5 text-xs font-medium text-primary-foreground backdrop-blur-sm">
-            💰 可变现
+        {(app as any).is_for_sale && (
+          <span className="absolute top-2.5 right-2.5 rounded-md bg-emerald-600/90 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+            💸 出售中
           </span>
         )}
         {app.is_boosted && (

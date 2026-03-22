@@ -25,7 +25,7 @@ export default function Ranking() {
       } else if (activeTab === 'favorites') {
         query = query.order('favorites_count', { ascending: false });
       } else {
-        query = query.eq('is_monetized', true).order('likes_count', { ascending: false });
+        query = query.eq('is_for_sale' as any, true).order('created_at', { ascending: false });
       }
 
       const { data } = await query.limit(20);

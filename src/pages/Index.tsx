@@ -33,8 +33,8 @@ export default function Index() {
         query = query.order('likes_count', { ascending: false });
       } else if (activeTab === 'new') {
         query = query.order('created_at', { ascending: false });
-      } else if (activeTab === 'monetized') {
-        query = query.eq('is_monetized', true).order('likes_count', { ascending: false });
+      } else if (activeTab === 'for_sale') {
+        query = query.eq('is_for_sale' as any, true).order('created_at', { ascending: false });
       }
 
       const { data, error } = await query.limit(30);
