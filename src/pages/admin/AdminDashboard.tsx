@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                         {app.is_for_sale && <span className="text-[10px] px-1.5 rounded bg-emerald-500/10 text-emerald-400">出售</span>}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>提交者：{app.profiles?.display_name || '未知'}</span>
+                        <span>提交者：{app.profile_display_name || '未知'}</span>
                         <span>阶段：{app.monetization_stage || '未设置'}</span>
                         <span>{new Date(app.created_at).toLocaleDateString('zh-CN')}</span>
                       </div>
