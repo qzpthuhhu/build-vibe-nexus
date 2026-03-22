@@ -14,7 +14,7 @@ interface MediaFile {
 }
 
 interface MediaUploaderProps {
-  mediaType: 'cover' | 'screenshot' | 'video' | 'document';
+  mediaType: 'cover' | 'screenshot' | 'video' | 'document' | 'qr_code';
   files: MediaFile[];
   onChange: (files: MediaFile[]) => void;
   max?: number;
