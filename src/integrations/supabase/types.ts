@@ -17,14 +17,18 @@ export type Database = {
       apps: {
         Row: {
           boost_expires_at: string | null
+          contact_info: string | null
           cover_image: string | null
           created_at: string
           description: string | null
           favorites_count: number
           id: string
           is_boosted: boolean
+          is_for_sale: boolean
           is_monetized: boolean
           likes_count: number
+          monetization_stage: string | null
+          price: string | null
           prompt: string | null
           status: Database["public"]["Enums"]["app_status"]
           tags: string[] | null
@@ -37,14 +41,18 @@ export type Database = {
         }
         Insert: {
           boost_expires_at?: string | null
+          contact_info?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
           favorites_count?: number
           id?: string
           is_boosted?: boolean
+          is_for_sale?: boolean
           is_monetized?: boolean
           likes_count?: number
+          monetization_stage?: string | null
+          price?: string | null
           prompt?: string | null
           status?: Database["public"]["Enums"]["app_status"]
           tags?: string[] | null
@@ -57,14 +65,18 @@ export type Database = {
         }
         Update: {
           boost_expires_at?: string | null
+          contact_info?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
           favorites_count?: number
           id?: string
           is_boosted?: boolean
+          is_for_sale?: boolean
           is_monetized?: boolean
           likes_count?: number
+          monetization_stage?: string | null
+          price?: string | null
           prompt?: string | null
           status?: Database["public"]["Enums"]["app_status"]
           tags?: string[] | null
