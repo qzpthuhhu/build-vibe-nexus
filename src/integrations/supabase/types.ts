@@ -14,16 +14,234 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      apps: {
+        Row: {
+          boost_expires_at: string | null
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          favorites_count: number
+          id: string
+          is_boosted: boolean
+          is_monetized: boolean
+          likes_count: number
+          prompt: string | null
+          status: Database["public"]["Enums"]["app_status"]
+          tags: string[] | null
+          tech_stack: string[] | null
+          title: string
+          updated_at: string
+          url: string
+          user_id: string
+          views: number
+        }
+        Insert: {
+          boost_expires_at?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          favorites_count?: number
+          id?: string
+          is_boosted?: boolean
+          is_monetized?: boolean
+          likes_count?: number
+          prompt?: string | null
+          status?: Database["public"]["Enums"]["app_status"]
+          tags?: string[] | null
+          tech_stack?: string[] | null
+          title: string
+          updated_at?: string
+          url: string
+          user_id: string
+          views?: number
+        }
+        Update: {
+          boost_expires_at?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          favorites_count?: number
+          id?: string
+          is_boosted?: boolean
+          is_monetized?: boolean
+          likes_count?: number
+          prompt?: string | null
+          status?: Database["public"]["Enums"]["app_status"]
+          tags?: string[] | null
+          tech_stack?: string[] | null
+          title?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+          views?: number
+        }
+        Relationships: []
+      }
+      comments: {
+        Row: {
+          app_id: string
+          content: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_id: string
+          content: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          app_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          app_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          app_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      likes: {
+        Row: {
+          app_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          app_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          app_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          credits: number
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          credits?: number
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          credits?: number
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_app_views: { Args: { app_uuid: string }; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      app_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +368,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_status: ["pending", "approved", "rejected"],
+    },
   },
 } as const
