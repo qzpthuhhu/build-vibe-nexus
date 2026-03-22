@@ -10,6 +10,7 @@ import Submit from "./pages/Submit";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Ranking from "./pages/Ranking";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,9 +26,11 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/app/:id" element={<AppDetail />} />
             <Route path="/submit" element={<Submit />} />
+            <Route path="/submit/:id" element={<Submit />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/ranking" element={<Ranking />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

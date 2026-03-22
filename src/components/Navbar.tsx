@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
+import { useAdmin } from '@/hooks/use-admin';
 import { Button } from '@/components/ui/button';
-import { Plus, User, LogOut, Coins, Zap } from 'lucide-react';
+import { Plus, User, LogOut, Coins, Zap, Shield } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
 
 export default function Navbar() {
   const { user, profile, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
 
   return (
@@ -61,6 +63,12 @@ export default function Navbar() {
                     <User className="mr-2 h-4 w-4" />
                     个人主页
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      管理后台
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="mr-2 h-4 w-4" />
