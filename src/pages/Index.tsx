@@ -34,7 +34,7 @@ export default function Index() {
       } else if (activeTab === 'new') {
         query = query.order('created_at', { ascending: false });
       } else if (activeTab === 'for_sale') {
-        query = query.eq('is_for_sale' as any, true).order('created_at', { ascending: false });
+        query = (query as any).eq('is_for_sale', true).order('created_at', { ascending: false });
       }
 
       const { data, error } = await query.limit(30);
