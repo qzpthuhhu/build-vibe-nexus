@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import AppCard from '@/components/AppCard';
-import { Coins, Package, Bookmark } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Coins, Package, Bookmark, Pencil, Eye, Send, Undo2, Trash2, XCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import StatusBadge from '@/components/StatusBadge';
+import { toast } from 'sonner';
 
 type Tab = 'apps' | 'favorites';
 
 export default function Profile() {
   const { user, profile } = useAuth();
   const [tab, setTab] = useState<Tab>('apps');
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: myApps = [] } = useQuery({
     queryKey: ['my-apps', user?.id],
@@ -53,6 +56,30 @@ export default function Profile() {
     enabled: !!user,
   });
 
+  const updateStatus = useMutation({
+    mutationFn: async ({ appId, status }: { appId: string; status: string }) => {
+      const update: any = { status };
+      if (status === 'pending') update.submitted_at = new Date().toISOString();
+      const { error } = await supabase.from('apps').update(update).eq('id', appId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-apps'] });
+      toast.success('操作成功');
+    },
+  });
+
+  const deleteApp = useMutation({
+    mutationFn: async (appId: string) => {
+      const { error } = await supabase.from('apps').delete().eq('id', appId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-apps'] });
+      toast.success('已删除');
+    },
+  });
+
   if (!user) {
     return (
       <div className="container py-24 text-center space-y-4">
@@ -61,8 +88,6 @@ export default function Profile() {
       </div>
     );
   }
-
-  const items = tab === 'apps' ? myApps : favorites;
 
   return (
     <div className="container max-w-4xl py-8 space-y-8">
@@ -121,17 +146,111 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* Grid */}
-      {items.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground">
-          <p>{tab === 'apps' ? '还没有发布应用' : '还没有收藏'}</p>
+      {/* My Apps with management */}
+      {tab === 'apps' && (
+        <div className="space-y-3">
+          {myApps.length === 0 ? (
+            <div className="py-16 text-center text-muted-foreground">
+              <p>还没有发布应用</p>
+            </div>
+          ) : (
+            myApps.map((app: any, i: number) => (
+              <div key={app.id} className={`glass-card p-4 animate-fade-up stagger-${Math.min(i % 4, 4)}`}>
+                <div className="flex items-start gap-4">
+                  {/* Thumbnail */}
+                  <div className="w-20 h-14 rounded-lg overflow-hidden bg-secondary shrink-0">
+                    {app.cover_image ? (
+                      <img src={app.cover_image} alt={app.title} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-primary/30 font-bold">{app.title[0]}</div>
+                    )}
+                  </div>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-sm font-semibold truncate">{app.title}</h3>
+                      <StatusBadge status={app.status} />
+                      {app.is_for_sale && (
+                        <span className="text-[10px] px-1.5 py-0 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">出售中</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{app.description}</p>
+                    {app.rejection_reason && app.status === 'rejected' && (
+                      <p className="text-xs text-destructive mt-1">驳回原因：{app.rejection_reason}</p>
+                    )}
+                  </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/app/${app.id}`)}>
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/submit/${app.id}`)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    {(app.status === 'draft' || app.status === 'rejected') && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-primary"
+                        onClick={() => updateStatus.mutate({ appId: app.id, status: 'pending' })}
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    {app.status === 'pending' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-amber-400"
+                        onClick={() => updateStatus.mutate({ appId: app.id, status: 'draft' })}
+                        title="撤回审核"
+                      >
+                        <Undo2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    {app.status === 'draft' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={() => deleteApp.mutate(app.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {items.map((app: any, i: number) => (
-            <AppCard key={app.id} app={app} index={i} />
-          ))}
-        </div>
+      )}
+
+      {/* Favorites tab (card grid) */}
+      {tab === 'favorites' && (
+        favorites.length === 0 ? (
+          <div className="py-16 text-center text-muted-foreground">
+            <p>还没有收藏</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {favorites.map((app: any, i: number) => (
+              <Link key={app.id} to={`/app/${app.id}`} className={`glass-card hover-lift overflow-hidden animate-fade-up stagger-${Math.min(i % 4, 4)}`}>
+                <div className="aspect-[16/10] bg-secondary">
+                  {app.cover_image ? (
+                    <img src={app.cover_image} alt={app.title} className="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-primary/30 text-2xl font-bold">{app.title?.[0]}</div>
+                  )}
+                </div>
+                <div className="p-3">
+                  <h3 className="text-sm font-semibold truncate">{app.title}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{app.description}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )
       )}
     </div>
   );

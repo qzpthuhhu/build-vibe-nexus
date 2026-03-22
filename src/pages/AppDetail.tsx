@@ -6,9 +6,11 @@ import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import AppCard from '@/components/AppCard';
+import MediaGallery from '@/components/MediaGallery';
+import StatusBadge from '@/components/StatusBadge';
 import {
   Heart, Bookmark, ExternalLink, Eye, MessageSquare,
-  ArrowLeft, Send, ChevronDown, ChevronUp
+  ArrowLeft, Send, ChevronDown, ChevronUp, Monitor
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,6 +20,8 @@ export default function AppDetail() {
   const queryClient = useQueryClient();
   const [comment, setComment] = useState('');
   const [showPrompt, setShowPrompt] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [iframeError, setIframeError] = useState(false);
 
   const { data: app, isLoading } = useQuery({
     queryKey: ['app', id],
@@ -103,7 +107,6 @@ export default function AppDetail() {
     enabled: !!app,
   });
 
-  // Increment views
   useEffect(() => {
     if (id) {
       supabase.rpc('increment_app_views', { app_uuid: id });
@@ -180,7 +183,6 @@ export default function AppDetail() {
   return (
     <div className="min-h-screen">
       <div className="container max-w-4xl py-8 space-y-8">
-        {/* Back */}
         <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
           返回
@@ -196,7 +198,10 @@ export default function AppDetail() {
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="space-y-2">
-              <h1 className="text-2xl md:text-3xl font-bold">{app.title}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-bold">{app.title}</h1>
+                {app.status !== 'approved' && <StatusBadge status={app.status} />}
+              </div>
               {author && (
                 <p className="text-sm text-muted-foreground">
                   由 <span className="text-foreground">{author.display_name}</span> 发布
@@ -230,7 +235,6 @@ export default function AppDetail() {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" /> {app.likes_count} 赞</span>
             <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {app.views} 浏览</span>
@@ -243,19 +247,14 @@ export default function AppDetail() {
           {app.tags && app.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {app.tags.map((tag) => (
-                <span key={tag} className="rounded-md bg-secondary px-2.5 py-1 text-xs text-muted-foreground">
-                  {tag}
-                </span>
+                <span key={tag} className="rounded-md bg-secondary px-2.5 py-1 text-xs text-muted-foreground">{tag}</span>
               ))}
             </div>
           )}
-
           {app.tech_stack && app.tech_stack.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {app.tech_stack.map((t) => (
-                <span key={t} className="rounded-md bg-primary/10 px-2.5 py-1 text-xs text-primary font-medium">
-                  {t}
-                </span>
+                <span key={t} className="rounded-md bg-primary/10 px-2.5 py-1 text-xs text-primary font-medium">{t}</span>
               ))}
             </div>
           )}
@@ -269,12 +268,15 @@ export default function AppDetail() {
           </p>
         </div>
 
+        {/* Media Gallery */}
+        <div className="animate-fade-up stagger-2">
+          <MediaGallery appId={app.id} />
+        </div>
+
         {/* For Sale */}
         {(app as any).is_for_sale && (
           <div className="animate-fade-up stagger-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 space-y-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              💸 项目出售中
-            </h2>
+            <h2 className="text-lg font-semibold flex items-center gap-2">💸 项目出售中</h2>
             {(app as any).price && (
               <p className="text-sm"><span className="text-muted-foreground">售价：</span><span className="font-medium text-emerald-400">{(app as any).price}</span></p>
             )}
@@ -283,6 +285,56 @@ export default function AppDetail() {
             )}
           </div>
         )}
+
+        {/* Inline Preview (Beta) */}
+        <div className="animate-fade-up stagger-3 glass-card overflow-hidden">
+          <button
+            onClick={() => { setShowPreview(!showPreview); setIframeError(false); }}
+            className="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-card-hover transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Monitor className="h-4 w-4 text-primary" />
+              站内预览（Beta）
+            </span>
+            {showPreview ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+          {showPreview && (
+            <div className="px-4 pb-4">
+              {iframeError ? (
+                <div className="rounded-lg bg-secondary/50 p-6 text-center space-y-3">
+                  <p className="text-sm text-muted-foreground">该网站不支持站内嵌入预览</p>
+                  <a href={app.url} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" className="gap-1.5">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      在新窗口打开
+                    </Button>
+                  </a>
+                </div>
+              ) : (
+                <div className="rounded-lg overflow-hidden border border-border/50">
+                  <iframe
+                    src={app.url}
+                    className="w-full h-[500px] bg-white"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    onError={() => setIframeError(true)}
+                    onLoad={(e) => {
+                      // Try to detect X-Frame-Options blocking
+                      try {
+                        const iframe = e.target as HTMLIFrameElement;
+                        // If we can't access contentDocument, it might be blocked
+                        if (iframe.contentDocument === null) {
+                          setIframeError(true);
+                        }
+                      } catch {
+                        // Cross-origin - expected, iframe loaded successfully
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Prompt */}
         {app.prompt && (
@@ -310,7 +362,6 @@ export default function AppDetail() {
             <MessageSquare className="h-5 w-5" />
             评论 ({comments.length})
           </h2>
-
           {user && (
             <div className="glass-card p-4 space-y-3">
               <Textarea
@@ -332,7 +383,6 @@ export default function AppDetail() {
               </div>
             </div>
           )}
-
           <div className="space-y-3">
             {comments.map((c: any) => (
               <div key={c.id} className="glass-card p-4 space-y-2">
