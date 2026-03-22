@@ -8,11 +8,22 @@ import { Textarea } from '@/components/ui/textarea';
 import AppCard from '@/components/AppCard';
 import MediaGallery from '@/components/MediaGallery';
 import StatusBadge from '@/components/StatusBadge';
+import PlatformBadge from '@/components/PlatformBadge';
 import {
   Heart, Bookmark, ExternalLink, Eye, MessageSquare,
-  ArrowLeft, Send, ChevronDown, ChevronUp, Monitor
+  ArrowLeft, Send, ChevronDown, ChevronUp, Monitor,
+  QrCode, Download
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+const ACCESS_LABELS: Record<string, string> = {
+  public_link: '公开链接',
+  qr_code: '扫码体验',
+  invite_code: '邀请码体验',
+  app_store: '应用商店下载',
+  testflight: 'TestFlight',
+  private_beta: '私测中',
+};
 
 export default function AppDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,11 +37,7 @@ export default function AppDetail() {
   const { data: app, isLoading } = useQuery({
     queryKey: ['app', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('apps')
-        .select('*')
-        .eq('id', id!)
-        .single();
+      const { data, error } = await supabase.from('apps').select('*').eq('id', id!).single();
       if (error) throw error;
       return data;
     },
@@ -40,25 +47,25 @@ export default function AppDetail() {
   const { data: author } = useQuery({
     queryKey: ['profile', app?.user_id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', app!.user_id)
-        .single();
+      const { data } = await supabase.from('profiles').select('*').eq('user_id', app!.user_id).single();
       return data;
     },
     enabled: !!app?.user_id,
   });
 
+  const { data: qrMedia } = useQuery({
+    queryKey: ['app-qr', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('app_media').select('*').eq('app_id', id!).eq('media_type', 'qr_code').limit(1);
+      return data?.[0] || null;
+    },
+    enabled: !!id,
+  });
+
   const { data: isLiked } = useQuery({
     queryKey: ['liked', id, user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('likes')
-        .select('id')
-        .eq('app_id', id!)
-        .eq('user_id', user!.id)
-        .maybeSingle();
+      const { data } = await supabase.from('likes').select('id').eq('app_id', id!).eq('user_id', user!.id).maybeSingle();
       return !!data;
     },
     enabled: !!user && !!id,
@@ -67,12 +74,7 @@ export default function AppDetail() {
   const { data: isFavorited } = useQuery({
     queryKey: ['favorited', id, user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('app_id', id!)
-        .eq('user_id', user!.id)
-        .maybeSingle();
+      const { data } = await supabase.from('favorites').select('id').eq('app_id', id!).eq('user_id', user!.id).maybeSingle();
       return !!data;
     },
     enabled: !!user && !!id,
@@ -83,10 +85,14 @@ export default function AppDetail() {
     queryFn: async () => {
       const { data } = await supabase
         .from('comments')
-        .select('*, profiles!comments_user_id_fkey(display_name, avatar_url)')
+        .select('*')
         .eq('app_id', id!)
         .order('created_at', { ascending: false });
-      return data || [];
+      if (!data || data.length === 0) return [];
+      const userIds = [...new Set(data.map((c: any) => c.user_id))];
+      const { data: profiles } = await supabase.from('profiles').select('user_id, display_name, avatar_url').in('user_id', userIds);
+      const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p]));
+      return data.map((c: any) => ({ ...c, profile: profileMap[c.user_id] || null }));
     },
     enabled: !!id,
   });
@@ -95,70 +101,40 @@ export default function AppDetail() {
     queryKey: ['similar', id, app?.tags],
     queryFn: async () => {
       if (!app?.tags?.length) return [];
-      const { data } = await supabase
-        .from('apps')
-        .select('*')
-        .neq('id', id!)
-        .eq('status', 'approved')
-        .overlaps('tags', app.tags)
-        .limit(4);
+      const { data } = await supabase.from('apps').select('*').neq('id', id!).eq('status', 'approved').overlaps('tags', app.tags).limit(4);
       return data || [];
     },
     enabled: !!app,
   });
 
-  useEffect(() => {
-    if (id) {
-      supabase.rpc('increment_app_views', { app_uuid: id });
-    }
-  }, [id]);
+  useEffect(() => { if (id) supabase.rpc('increment_app_views', { app_uuid: id }); }, [id]);
 
   const toggleLike = useMutation({
     mutationFn: async () => {
       if (!user) { toast.error('请先登录'); return; }
-      if (isLiked) {
-        await supabase.from('likes').delete().eq('app_id', id!).eq('user_id', user.id);
-      } else {
-        await supabase.from('likes').insert({ app_id: id!, user_id: user.id });
-      }
+      if (isLiked) await supabase.from('likes').delete().eq('app_id', id!).eq('user_id', user.id);
+      else await supabase.from('likes').insert({ app_id: id!, user_id: user.id });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['liked', id] });
-      queryClient.invalidateQueries({ queryKey: ['app', id] });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['liked', id] }); queryClient.invalidateQueries({ queryKey: ['app', id] }); },
   });
 
   const toggleFavorite = useMutation({
     mutationFn: async () => {
       if (!user) { toast.error('请先登录'); return; }
-      if (isFavorited) {
-        await supabase.from('favorites').delete().eq('app_id', id!).eq('user_id', user.id);
-      } else {
-        await supabase.from('favorites').insert({ app_id: id!, user_id: user.id });
-      }
+      if (isFavorited) await supabase.from('favorites').delete().eq('app_id', id!).eq('user_id', user.id);
+      else await supabase.from('favorites').insert({ app_id: id!, user_id: user.id });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['favorited', id] });
-      queryClient.invalidateQueries({ queryKey: ['app', id] });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['favorited', id] }); queryClient.invalidateQueries({ queryKey: ['app', id] }); },
   });
 
   const submitComment = useMutation({
     mutationFn: async () => {
       if (!user) { toast.error('请先登录'); return; }
       if (!comment.trim()) return;
-      const { error } = await supabase.from('comments').insert({
-        app_id: id!,
-        user_id: user.id,
-        content: comment.trim(),
-      });
+      const { error } = await supabase.from('comments').insert({ app_id: id!, user_id: user.id, content: comment.trim() });
       if (error) throw error;
     },
-    onSuccess: () => {
-      setComment('');
-      queryClient.invalidateQueries({ queryKey: ['comments', id] });
-      toast.success('评论已发布');
-    },
+    onSuccess: () => { setComment(''); queryClient.invalidateQueries({ queryKey: ['comments', id] }); toast.success('评论已发布'); },
   });
 
   if (isLoading) {
@@ -180,6 +156,10 @@ export default function AppDetail() {
     );
   }
 
+  const a = app as any;
+  const isWebPlatform = ['web', 'h5', 'multi'].includes(a.platform_type || '');
+  const previewUrl = a.experience_url || a.url;
+
   return (
     <div className="min-h-screen">
       <div className="container max-w-4xl py-8 space-y-8">
@@ -198,15 +178,23 @@ export default function AppDetail() {
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl md:text-3xl font-bold">{app.title}</h1>
+                <PlatformBadge platform={a.platform_type} />
                 {app.status !== 'approved' && <StatusBadge status={app.status} />}
               </div>
-              {author && (
-                <p className="text-sm text-muted-foreground">
-                  由 <span className="text-foreground">{author.display_name}</span> 发布
-                </p>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                {author && (
+                  <p className="text-sm text-muted-foreground">
+                    由 <span className="text-foreground">{author.display_name}</span> 发布
+                  </p>
+                )}
+                {a.access_type && (
+                  <span className="text-xs rounded-md bg-primary/10 text-primary px-2 py-0.5">
+                    {ACCESS_LABELS[a.access_type] || a.access_type}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
@@ -216,20 +204,10 @@ export default function AppDetail() {
                   立即体验
                 </Button>
               </a>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => toggleLike.mutate()}
-                className={isLiked ? 'border-red-500/50 text-red-500' : ''}
-              >
+              <Button variant="outline" size="icon" onClick={() => toggleLike.mutate()} className={isLiked ? 'border-red-500/50 text-red-500' : ''}>
                 <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => toggleFavorite.mutate()}
-                className={isFavorited ? 'border-amber-500/50 text-amber-500' : ''}
-              >
+              <Button variant="outline" size="icon" onClick={() => toggleFavorite.mutate()} className={isFavorited ? 'border-amber-500/50 text-amber-500' : ''}>
                 <Bookmark className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
               </Button>
             </div>
@@ -263,94 +241,114 @@ export default function AppDetail() {
         {/* Description */}
         <div className="animate-fade-up stagger-2 glass-card p-6">
           <h2 className="text-lg font-semibold mb-3">应用介绍</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-            {app.description || '暂无介绍'}
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{app.description || '暂无介绍'}</p>
         </div>
 
-        {/* Media Gallery */}
-        <div className="animate-fade-up stagger-2">
+        {/* Visual Preview Section - Primary preview for all apps */}
+        <div className="animate-fade-up stagger-2 space-y-4">
+          <h2 className="text-lg font-semibold">应用预览</h2>
           <MediaGallery appId={app.id} />
-        </div>
 
-        {/* For Sale */}
-        {(app as any).is_for_sale && (
-          <div className="animate-fade-up stagger-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 space-y-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2">💸 项目出售中</h2>
-            {(app as any).price && (
-              <p className="text-sm"><span className="text-muted-foreground">售价：</span><span className="font-medium text-emerald-400">{(app as any).price}</span></p>
-            )}
-            {(app as any).contact_info && (
-              <p className="text-sm"><span className="text-muted-foreground">联系方式：</span><span className="font-medium">{(app as any).contact_info}</span></p>
-            )}
-          </div>
-        )}
+          {/* QR Code for mini programs */}
+          {(qrMedia || a.mini_program_qr_url) && (
+            <div className="glass-card p-6 space-y-3">
+              <h3 className="text-sm font-semibold flex items-center gap-1.5">
+                <QrCode className="h-4 w-4 text-primary" />
+                扫码体验
+              </h3>
+              <div className="flex justify-center">
+                <img
+                  src={qrMedia?.file_url || a.mini_program_qr_url}
+                  alt="小程序二维码"
+                  className="max-w-[200px] rounded-lg border border-border/50"
+                />
+              </div>
+            </div>
+          )}
 
-        {/* Inline Preview (Beta) */}
-        <div className="animate-fade-up stagger-3 glass-card overflow-hidden">
-          <button
-            onClick={() => { setShowPreview(!showPreview); setIframeError(false); }}
-            className="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-card-hover transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Monitor className="h-4 w-4 text-primary" />
-              站内预览（Beta）
-            </span>
-            {showPreview ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          {showPreview && (
-            <div className="px-4 pb-4">
-              {iframeError ? (
-                <div className="rounded-lg bg-secondary/50 p-6 text-center space-y-3">
-                  <p className="text-sm text-muted-foreground">该网站不支持站内嵌入预览</p>
-                  <a href={app.url} target="_blank" rel="noopener noreferrer">
-                    <Button size="sm" className="gap-1.5">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      在新窗口打开
-                    </Button>
-                  </a>
-                </div>
-              ) : (
-                <div className="rounded-lg overflow-hidden border border-border/50">
-                  <iframe
-                    src={app.url}
-                    className="w-full h-[500px] bg-white"
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                    onError={() => setIframeError(true)}
-                    onLoad={(e) => {
-                      // Try to detect X-Frame-Options blocking
-                      try {
-                        const iframe = e.target as HTMLIFrameElement;
-                        // If we can't access contentDocument, it might be blocked
-                        if (iframe.contentDocument === null) {
-                          setIframeError(true);
-                        }
-                      } catch {
-                        // Cross-origin - expected, iframe loaded successfully
-                      }
-                    }}
-                  />
-                </div>
+          {/* App Store / Download links */}
+          {(a.app_store_url || a.android_download_url) && (
+            <div className="glass-card p-4 space-y-2">
+              {a.app_store_url && (
+                <a href={a.app_store_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 hover:bg-secondary/50 transition-colors">
+                  <Download className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">App Store / TestFlight</span>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+                </a>
+              )}
+              {a.android_download_url && (
+                <a href={a.android_download_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 hover:bg-secondary/50 transition-colors">
+                  <Download className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Android 下载</span>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+                </a>
               )}
             </div>
           )}
         </div>
 
+        {/* For Sale */}
+        {a.is_for_sale && (
+          <div className="animate-fade-up stagger-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 space-y-3">
+            <h2 className="text-lg font-semibold flex items-center gap-2">💸 项目出售中</h2>
+            {a.price && <p className="text-sm"><span className="text-muted-foreground">售价：</span><span className="font-medium text-emerald-400">{a.price}</span></p>}
+            {a.contact_info && <p className="text-sm"><span className="text-muted-foreground">联系方式：</span><span className="font-medium">{a.contact_info}</span></p>}
+          </div>
+        )}
+
+        {/* Inline Preview (Beta) - Only for web platforms */}
+        {isWebPlatform && (
+          <div className="animate-fade-up stagger-3 glass-card overflow-hidden">
+            <button
+              onClick={() => { setShowPreview(!showPreview); setIframeError(false); }}
+              className="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-card-hover transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <Monitor className="h-4 w-4 text-primary" />
+                站内预览（Beta）
+              </span>
+              {showPreview ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {showPreview && (
+              <div className="px-4 pb-4">
+                {iframeError ? (
+                  <div className="rounded-lg bg-secondary/50 p-6 text-center space-y-3">
+                    <p className="text-sm text-muted-foreground">该网站不支持站内嵌入预览，请点击「立即体验」在新窗口打开。</p>
+                    <a href={previewUrl} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" className="gap-1.5"><ExternalLink className="h-3.5 w-3.5" />在新窗口打开</Button>
+                    </a>
+                  </div>
+                ) : (
+                  <div className="rounded-lg overflow-hidden border border-border/50">
+                    <iframe
+                      src={previewUrl}
+                      className="w-full h-[500px] bg-white"
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                      onError={() => setIframeError(true)}
+                      onLoad={(e) => {
+                        try {
+                          const iframe = e.target as HTMLIFrameElement;
+                          if (iframe.contentDocument === null) setIframeError(true);
+                        } catch { /* cross-origin expected */ }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Prompt */}
         {app.prompt && (
           <div className="animate-fade-up stagger-3 glass-card overflow-hidden">
-            <button
-              onClick={() => setShowPrompt(!showPrompt)}
-              className="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-card-hover transition-colors"
-            >
+            <button onClick={() => setShowPrompt(!showPrompt)} className="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-card-hover transition-colors">
               <span>查看 Prompt / 工作流</span>
               {showPrompt ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
             {showPrompt && (
               <div className="px-4 pb-4">
-                <pre className="rounded-lg bg-secondary/50 p-4 text-xs text-muted-foreground overflow-x-auto whitespace-pre-wrap">
-                  {app.prompt}
-                </pre>
+                <pre className="rounded-lg bg-secondary/50 p-4 text-xs text-muted-foreground overflow-x-auto whitespace-pre-wrap">{app.prompt}</pre>
               </div>
             )}
           </div>
@@ -364,19 +362,9 @@ export default function AppDetail() {
           </h2>
           {user && (
             <div className="glass-card p-4 space-y-3">
-              <Textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="写下你的想法..."
-                className="min-h-[80px] bg-secondary/50 border-border/50 resize-none"
-              />
+              <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="写下你的想法..." className="min-h-[80px] bg-secondary/50 border-border/50 resize-none" />
               <div className="flex justify-end">
-                <Button
-                  size="sm"
-                  onClick={() => submitComment.mutate()}
-                  disabled={!comment.trim() || submitComment.isPending}
-                  className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
-                >
+                <Button size="sm" onClick={() => submitComment.mutate()} disabled={!comment.trim() || submitComment.isPending} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
                   <Send className="h-3.5 w-3.5" />
                   发布评论
                 </Button>
@@ -388,19 +376,15 @@ export default function AppDetail() {
               <div key={c.id} className="glass-card p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                    {c.profiles?.display_name?.[0] || 'U'}
+                    {c.profile?.display_name?.[0] || 'U'}
                   </div>
-                  <span className="text-sm font-medium">{c.profiles?.display_name || '匿名'}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(c.created_at).toLocaleDateString('zh-CN')}
-                  </span>
+                  <span className="text-sm font-medium">{c.profile?.display_name || '匿名'}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString('zh-CN')}</span>
                 </div>
                 <p className="text-sm text-muted-foreground pl-9">{c.content}</p>
               </div>
             ))}
-            {comments.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground py-8">还没有评论，来说点什么吧</p>
-            )}
+            {comments.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">还没有评论，来说点什么吧</p>}
           </div>
         </div>
 
@@ -409,9 +393,7 @@ export default function AppDetail() {
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">相似应用</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {similar.map((s, i) => (
-                <AppCard key={s.id} app={s} index={i} />
-              ))}
+              {similar.map((s, i) => <AppCard key={s.id} app={s} index={i} />)}
             </div>
           </div>
         )}

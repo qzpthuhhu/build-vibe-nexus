@@ -29,6 +29,26 @@ const STAGE_OPTIONS = [
   { value: 'mature', label: '🚀 成熟项目', desc: '公司化/规模化' },
 ];
 
+const PLATFORM_OPTIONS = [
+  { value: 'web', label: 'Web 网页端' },
+  { value: 'h5', label: '手机 H5' },
+  { value: 'wechat_mini', label: '微信小程序' },
+  { value: 'ios', label: 'iOS App' },
+  { value: 'android', label: 'Android App' },
+  { value: 'desktop', label: '桌面端' },
+  { value: 'multi', label: '多平台' },
+  { value: 'other', label: '其他' },
+];
+
+const ACCESS_OPTIONS = [
+  { value: 'public_link', label: '公开链接' },
+  { value: 'qr_code', label: '扫码体验' },
+  { value: 'invite_code', label: '邀请码体验' },
+  { value: 'app_store', label: '应用商店下载' },
+  { value: 'testflight', label: 'TestFlight' },
+  { value: 'private_beta', label: '私测中' },
+];
+
 interface MediaFile {
   id?: string;
   file_url: string;
@@ -55,12 +75,19 @@ export default function Submit() {
     is_for_sale: false,
     price: '',
     contact_info: '',
+    platform_type: '',
+    access_type: '',
+    experience_url: '',
+    mini_program_qr_url: '',
+    app_store_url: '',
+    android_download_url: '',
   });
 
   const [coverFiles, setCoverFiles] = useState<MediaFile[]>([]);
   const [screenshotFiles, setScreenshotFiles] = useState<MediaFile[]>([]);
   const [videoFiles, setVideoFiles] = useState<MediaFile[]>([]);
   const [docFiles, setDocFiles] = useState<MediaFile[]>([]);
+  const [qrFiles, setQrFiles] = useState<MediaFile[]>([]);
 
   // Load existing app data for editing
   const { data: existingApp } = useQuery({
@@ -93,17 +120,24 @@ export default function Submit() {
 
   useEffect(() => {
     if (existingApp) {
+      const a = existingApp as any;
       setForm({
-        url: existingApp.url || '',
-        title: existingApp.title || '',
-        description: existingApp.description || '',
-        tags: existingApp.tags?.join(', ') || '',
-        tech_stack: existingApp.tech_stack || [],
-        prompt: existingApp.prompt || '',
-        monetization_stage: (existingApp as any).monetization_stage || '',
-        is_for_sale: (existingApp as any).is_for_sale || false,
-        price: (existingApp as any).price || '',
-        contact_info: (existingApp as any).contact_info || '',
+        url: a.url || '',
+        title: a.title || '',
+        description: a.description || '',
+        tags: a.tags?.join(', ') || '',
+        tech_stack: a.tech_stack || [],
+        prompt: a.prompt || '',
+        monetization_stage: a.monetization_stage || '',
+        is_for_sale: a.is_for_sale || false,
+        price: a.price || '',
+        contact_info: a.contact_info || '',
+        platform_type: a.platform_type || '',
+        access_type: a.access_type || '',
+        experience_url: a.experience_url || '',
+        mini_program_qr_url: a.mini_program_qr_url || '',
+        app_store_url: a.app_store_url || '',
+        android_download_url: a.android_download_url || '',
       });
     }
   }, [existingApp]);
@@ -122,15 +156,17 @@ export default function Submit() {
       setDocFiles(existingMedia.filter((m: any) => m.media_type === 'document').map((m: any) => ({
         id: m.id, file_url: m.file_url, file_name: m.file_name || '', media_type: m.media_type, sort_order: m.sort_order,
       })));
+      setQrFiles(existingMedia.filter((m: any) => m.media_type === 'qr_code').map((m: any) => ({
+        id: m.id, file_url: m.file_url, file_name: m.file_name || '', media_type: m.media_type, sort_order: m.sort_order,
+      })));
     }
   }, [existingMedia]);
 
   const saveMedia = async (appId: string) => {
-    // Delete old media
     if (isEdit) {
       await supabase.from('app_media').delete().eq('app_id', appId);
     }
-    const allMedia = [...coverFiles, ...screenshotFiles, ...videoFiles, ...docFiles];
+    const allMedia = [...coverFiles, ...screenshotFiles, ...videoFiles, ...docFiles, ...qrFiles];
     if (allMedia.length > 0) {
       await supabase.from('app_media').insert(
         allMedia.map((m, i) => ({
@@ -149,6 +185,7 @@ export default function Submit() {
     if (!user) { toast.error('请先登录'); return; }
     if (!form.url || !form.title) { toast.error('请填写应用链接和标题'); return; }
     if (!asDraft && !form.monetization_stage) { toast.error('请选择项目阶段'); return; }
+    if (!asDraft && !form.platform_type) { toast.error('请选择运行平台'); return; }
     if (form.is_for_sale && !form.contact_info.trim()) {
       toast.error('出售项目需填写联系方式');
       return;
@@ -157,6 +194,7 @@ export default function Submit() {
     setLoading(true);
     try {
       const coverUrl = coverFiles.length > 0 ? coverFiles[0].file_url : null;
+      const qrUrl = qrFiles.length > 0 ? qrFiles[0].file_url : form.mini_program_qr_url || null;
       const appData = {
         user_id: user.id,
         url: form.url,
@@ -172,6 +210,12 @@ export default function Submit() {
         contact_info: form.is_for_sale ? form.contact_info : null,
         status: asDraft ? 'draft' : 'pending',
         submitted_at: asDraft ? null : new Date().toISOString(),
+        platform_type: form.platform_type || null,
+        access_type: form.access_type || null,
+        experience_url: form.experience_url || null,
+        mini_program_qr_url: qrUrl,
+        app_store_url: form.app_store_url || null,
+        android_download_url: form.android_download_url || null,
       } as any;
 
       if (isEdit) {
@@ -185,14 +229,12 @@ export default function Submit() {
         await saveMedia(data.id);
 
         if (!asDraft) {
-          // Award credits for submission
           await supabase.from('credit_transactions').insert({
             user_id: user.id,
             amount: 20,
             type: 'publish',
             description: '发布应用奖励',
           });
-          await supabase.rpc('increment_app_views', { app_uuid: data.id }).then(() => {}); // no-op, just to trigger
           const { data: profileData } = await supabase.from('profiles').select('credits').eq('user_id', user.id).single();
           if (profileData) {
             await supabase.from('profiles').update({ credits: profileData.credits + 20 }).eq('user_id', user.id);
@@ -209,6 +251,11 @@ export default function Submit() {
       setLoading(false);
     }
   };
+
+  const showWebFields = ['web', 'h5', 'multi'].includes(form.platform_type);
+  const showMiniProgramFields = ['wechat_mini', 'multi'].includes(form.platform_type);
+  const showIosFields = ['ios', 'multi'].includes(form.platform_type);
+  const showAndroidFields = ['android', 'multi'].includes(form.platform_type);
 
   if (!user) {
     return (
@@ -303,44 +350,84 @@ export default function Submit() {
           </div>
         </div>
 
+        {/* Platform & Access */}
+        <div className="glass-card p-6 space-y-5">
+          <div>
+            <h3 className="text-sm font-semibold mb-1">📱 平台与体验</h3>
+            <p className="text-xs text-muted-foreground">选择应用运行平台和访问方式</p>
+          </div>
+          <div className="space-y-2">
+            <Label>运行平台 *</Label>
+            <Select value={form.platform_type} onValueChange={(v) => setForm({ ...form, platform_type: v })}>
+              <SelectTrigger className="bg-secondary/50 border-border/50">
+                <SelectValue placeholder="选择运行平台" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLATFORM_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>访问方式</Label>
+            <Select value={form.access_type} onValueChange={(v) => setForm({ ...form, access_type: v })}>
+              <SelectTrigger className="bg-secondary/50 border-border/50">
+                <SelectValue placeholder="选择访问方式（可选）" />
+              </SelectTrigger>
+              <SelectContent>
+                {ACCESS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Conditional experience entry fields */}
+          {showWebFields && (
+            <div className="space-y-2 animate-fade-up">
+              <Label>Web 体验链接</Label>
+              <Input value={form.experience_url} onChange={(e) => setForm({ ...form, experience_url: e.target.value })} placeholder="https://your-app.com" className="bg-secondary/50 border-border/50" />
+              <p className="text-xs text-muted-foreground">用于站内预览的网页链接</p>
+            </div>
+          )}
+          {showMiniProgramFields && (
+            <div className="space-y-3 animate-fade-up">
+              <Label>小程序二维码</Label>
+              <MediaUploader
+                mediaType="qr_code"
+                files={qrFiles}
+                onChange={setQrFiles}
+                max={1}
+                label="上传小程序体验二维码"
+                accept="image/*"
+              />
+            </div>
+          )}
+          {showIosFields && (
+            <div className="space-y-2 animate-fade-up">
+              <Label>App Store / TestFlight 链接</Label>
+              <Input value={form.app_store_url} onChange={(e) => setForm({ ...form, app_store_url: e.target.value })} placeholder="https://apps.apple.com/... 或 TestFlight 链接" className="bg-secondary/50 border-border/50" />
+            </div>
+          )}
+          {showAndroidFields && (
+            <div className="space-y-2 animate-fade-up">
+              <Label>Android 下载链接</Label>
+              <Input value={form.android_download_url} onChange={(e) => setForm({ ...form, android_download_url: e.target.value })} placeholder="应用商店链接或 APK 下载地址" className="bg-secondary/50 border-border/50" />
+            </div>
+          )}
+        </div>
+
         {/* Media Upload */}
         <div className="glass-card p-6 space-y-5">
           <div>
             <h3 className="text-sm font-semibold mb-1">📸 媒体资料</h3>
             <p className="text-xs text-muted-foreground">上传封面图、截图、演示视频和文档</p>
           </div>
-          <MediaUploader
-            mediaType="cover"
-            files={coverFiles}
-            onChange={setCoverFiles}
-            max={1}
-            label="封面图（1张）"
-            accept="image/*"
-          />
-          <MediaUploader
-            mediaType="screenshot"
-            files={screenshotFiles}
-            onChange={setScreenshotFiles}
-            max={6}
-            label="应用截图（最多6张）"
-            accept="image/*"
-          />
-          <MediaUploader
-            mediaType="video"
-            files={videoFiles}
-            onChange={setVideoFiles}
-            max={1}
-            label="演示视频（1个）"
-            accept="video/*"
-          />
-          <MediaUploader
-            mediaType="document"
-            files={docFiles}
-            onChange={setDocFiles}
-            max={5}
-            label="文档附件（PDF等）"
-            accept=".pdf,.doc,.docx"
-          />
+          <MediaUploader mediaType="cover" files={coverFiles} onChange={setCoverFiles} max={1} label="封面图（1张）" accept="image/*" />
+          <MediaUploader mediaType="screenshot" files={screenshotFiles} onChange={setScreenshotFiles} max={6} label="应用截图（最多6张）" accept="image/*" />
+          <MediaUploader mediaType="video" files={videoFiles} onChange={setVideoFiles} max={1} label="演示视频（1个）" accept="video/*" />
+          <MediaUploader mediaType="document" files={docFiles} onChange={setDocFiles} max={5} label="文档附件（PDF等）" accept=".pdf,.doc,.docx" />
         </div>
 
         {/* Sale Section */}
@@ -368,13 +455,7 @@ export default function Submit() {
         </div>
 
         <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={(e) => handleSubmit(e as any, true)}
-            disabled={loading}
-            className="flex-1 gap-2 h-11"
-          >
+          <Button type="button" variant="outline" onClick={(e) => handleSubmit(e as any, true)} disabled={loading} className="flex-1 gap-2 h-11">
             <Save className="h-4 w-4" />
             保存草稿
           </Button>
