@@ -36,7 +36,7 @@ export default function AdminDashboard() {
       const { data: appsData } = await query.order('created_at', { ascending: false }).limit(50);
       if (!appsData || appsData.length === 0) return [];
       // Fetch profile display names for all user_ids
-      const userIds = [...new Set(appsData.map((a: any) => a.user_id))];
+      const userIds = [...new Set(appsData.map((a: any) => a.user_id))] as string[];
       const { data: profiles } = await supabase.from('profiles').select('user_id, display_name').in('user_id', userIds);
       const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p.display_name]));
       return appsData.map((a: any) => ({ ...a, profile_display_name: profileMap[a.user_id] || null }));
