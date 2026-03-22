@@ -2,7 +2,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useAdmin } from '@/hooks/use-admin';
 import { Button } from '@/components/ui/button';
-import { Plus, User, LogOut, Coins, Zap, Shield } from 'lucide-react';
+import { Plus, User, LogOut, Coins, Shield } from 'lucide-react';
+import VibeDirLogo from '@/components/VibeDirLogo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,11 +20,9 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-14 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 group-hover:bg-primary/20 transition-colors">
-            <Zap className="h-4 w-4 text-primary" />
-          </div>
-          <span className="text-lg font-bold tracking-tight">VibeDir</span>
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <VibeDirLogo size={28} />
+          <span className="text-lg font-bold tracking-tight text-gradient">VibeDir</span>
         </Link>
 
         <div className="flex items-center gap-3">
