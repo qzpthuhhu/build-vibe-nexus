@@ -65,7 +65,11 @@
     "reject_reason": "Raison du rejet",
     "withdraw_review": "Retirer la demande",
     "success": "Succès",
-    "deleted": "Supprimé"
+    "deleted": "Supprimé",
+    "edit_name": "Modifier le nom",
+    "rename_success": "Nom modifié, 10 crédits déduits",
+    "rename_cost_desc": "Changement de nom",
+    "insufficient_credits": "Crédits insuffisants. Le changement de nom coûte 10 crédits"
   },
   "app_detail": {
     "back": "Retour",

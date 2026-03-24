@@ -65,7 +65,11 @@
     "reject_reason": "Ablehnungsgrund",
     "withdraw_review": "Prüfung zurückziehen",
     "success": "Erfolg",
-    "deleted": "Gelöscht"
+    "deleted": "Gelöscht",
+    "edit_name": "Name ändern",
+    "rename_success": "Name geändert, 10 Credits abgezogen",
+    "rename_cost_desc": "Umbenennung",
+    "insufficient_credits": "Nicht genug Credits. Umbenennung kostet 10 Credits"
   },
   "app_detail": {
     "back": "Zurück",
