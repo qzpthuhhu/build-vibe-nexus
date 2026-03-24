@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { Coins, Package, Bookmark, Pencil, Eye, Send, Undo2, Trash2 } from 'lucide-react';
+import { Coins, Package, Bookmark, Pencil, Eye, Send, Undo2, Trash2, Check, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import StatusBadge from '@/components/StatusBadge';
 import { toast } from 'sonner';
 
