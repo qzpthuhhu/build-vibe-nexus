@@ -126,7 +126,43 @@ export default function Profile() {
           {profile?.display_name?.[0] || 'U'}
         </div>
         <div className="flex-1">
-          <h1 className="text-xl font-bold">{profile?.display_name}</h1>
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="h-8 w-48 text-sm"
+                maxLength={20}
+                autoFocus
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary"
+                disabled={!newName.trim() || newName.trim() === profile?.display_name || updateName.isPending}
+                onClick={() => updateName.mutate(newName.trim())}
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsEditingName(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+              <span className="text-[10px] text-muted-foreground">-10 {t('profile_page.credits')}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold">{profile?.display_name}</h1>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => { setNewName(profile?.display_name || ''); setIsEditingName(true); }}
+                title={t('profile_page.edit_name')}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground mt-0.5">{user.email}</p>
         </div>
         <div className="flex items-center gap-2 text-sm shrink-0">
