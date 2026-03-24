@@ -3,20 +3,47 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { Coins, Package, Bookmark, Pencil, Eye, Send, Undo2, Trash2 } from 'lucide-react';
+import { Coins, Package, Bookmark, Pencil, Eye, Send, Undo2, Trash2, Check, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import StatusBadge from '@/components/StatusBadge';
 import { toast } from 'sonner';
 
 type Tab = 'apps' | 'favorites';
 
 export default function Profile() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [tab, setTab] = useState<Tab>('apps');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const updateName = useMutation({
+    mutationFn: async (name: string) => {
+      if (!user || !profile) throw new Error('Not authenticated');
+      if ((profile.credits ?? 0) < 10) throw new Error('insufficient_credits');
+      // Deduct credits
+      const { error: creditErr } = await supabase.from('profiles').update({ display_name: name, credits: (profile.credits ?? 0) - 10 }).eq('user_id', user.id);
+      if (creditErr) throw creditErr;
+      // Log transaction
+      await supabase.from('credit_transactions').insert({ user_id: user.id, amount: -10, type: 'rename', description: t('profile_page.rename_cost_desc') });
+    },
+    onSuccess: () => {
+      refreshProfile();
+      setIsEditingName(false);
+      toast.success(t('profile_page.rename_success'));
+    },
+    onError: (err: any) => {
+      if (err.message === 'insufficient_credits') {
+        toast.error(t('profile_page.insufficient_credits'));
+      } else {
+        toast.error(t('profile_page.success'));
+      }
+    },
+  });
 
   const { data: myApps = [] } = useQuery({
     queryKey: ['my-apps', user?.id],
@@ -99,7 +126,43 @@ export default function Profile() {
           {profile?.display_name?.[0] || 'U'}
         </div>
         <div className="flex-1">
-          <h1 className="text-xl font-bold">{profile?.display_name}</h1>
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="h-8 w-48 text-sm"
+                maxLength={20}
+                autoFocus
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary"
+                disabled={!newName.trim() || newName.trim() === profile?.display_name || updateName.isPending}
+                onClick={() => updateName.mutate(newName.trim())}
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsEditingName(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+              <span className="text-[10px] text-muted-foreground">-10 {t('profile_page.credits')}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold">{profile?.display_name}</h1>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => { setNewName(profile?.display_name || ''); setIsEditingName(true); }}
+                title={t('profile_page.edit_name')}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground mt-0.5">{user.email}</p>
         </div>
         <div className="flex items-center gap-2 text-sm shrink-0">

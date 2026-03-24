@@ -45,7 +45,7 @@ export default function AppCard({ app, index = 0 }: AppCardProps) {
         <h3 className="font-semibold text-sm leading-snug line-clamp-1 group-hover:text-primary transition-colors">
           {app.title}
         </h3>
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+        <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
           {app.description}
         </p>
 

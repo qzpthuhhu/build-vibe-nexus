@@ -65,7 +65,11 @@
     "reject_reason": "Rejection Reason",
     "withdraw_review": "Withdraw Review",
     "success": "Success",
-    "deleted": "Deleted"
+    "deleted": "Deleted",
+    "edit_name": "Edit name",
+    "rename_success": "Name updated, 10 credits deducted",
+    "rename_cost_desc": "Rename",
+    "insufficient_credits": "Insufficient credits, renaming costs 10 credits"
   },
   "app_detail": {
     "back": "Back",

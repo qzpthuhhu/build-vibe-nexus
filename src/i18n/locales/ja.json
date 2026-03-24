@@ -65,7 +65,11 @@
     "reject_reason": "却下理由",
     "withdraw_review": "審査を取り下げ",
     "success": "成功",
-    "deleted": "削除しました"
+    "deleted": "削除しました",
+    "edit_name": "名前を変更",
+    "rename_success": "名前を変更しました（10クレジット消費）",
+    "rename_cost_desc": "名前変更",
+    "insufficient_credits": "クレジット不足です。名前変更には10クレジット必要です"
   },
   "app_detail": {
     "back": "戻る",

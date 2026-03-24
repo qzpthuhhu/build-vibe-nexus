@@ -65,7 +65,11 @@
     "reject_reason": "驳回原因",
     "withdraw_review": "撤回审核",
     "success": "操作成功",
-    "deleted": "已删除"
+    "deleted": "已删除",
+    "edit_name": "修改昵称",
+    "rename_success": "昵称修改成功，已消耗 10 积分",
+    "rename_cost_desc": "修改昵称",
+    "insufficient_credits": "积分不足，修改昵称需要 10 积分"
   },
   "app_detail": {
     "back": "返回",
