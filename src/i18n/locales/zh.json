@@ -161,7 +161,9 @@
     "draft_saved": "草稿已保存",
     "resubmitted": "已重新提交审核",
     "submit_success": "应用提交成功！获得 20 积分 🎉",
-    "publish_reward": "发布应用奖励"
+    "publish_reward": "发布应用奖励",
+    "write": "编辑",
+    "preview": "预览"
   },
   "not_found": {
     "title": "404",
