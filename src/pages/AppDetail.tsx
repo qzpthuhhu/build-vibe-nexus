@@ -236,7 +236,13 @@ export default function AppDetail() {
         {/* Description */}
         <div className="animate-fade-up stagger-2 glass-card p-6">
           <h2 className="text-lg font-semibold mb-3">{t('app_detail.app_intro')}</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{app.description || t('app_detail.no_intro')}</p>
+          {app.description ? (
+            <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-code:text-primary prose-code:bg-secondary prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-secondary prose-pre:text-foreground">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{app.description}</ReactMarkdown>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t('app_detail.no_intro')}</p>
+          )}
         </div>
 
         {/* Visual Preview Section */}
