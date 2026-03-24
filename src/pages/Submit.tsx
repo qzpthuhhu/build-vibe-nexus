@@ -38,6 +38,7 @@ export default function Submit() {
   const { id: editId } = useParams<{ id: string }>();
   const isEdit = !!editId;
   const [loading, setLoading] = useState(false);
+  const [descTab, setDescTab] = useState<'write' | 'preview'>('write');
   const { t } = useTranslation();
 
   const [form, setForm] = useState({
