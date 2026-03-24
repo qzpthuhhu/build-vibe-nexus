@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
@@ -16,19 +17,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const ACCESS_LABELS: Record<string, string> = {
-  public_link: '公开链接',
-  qr_code: '扫码体验',
-  invite_code: '邀请码体验',
-  app_store: '应用商店下载',
-  testflight: 'TestFlight',
-  private_beta: '私测中',
-};
-
 export default function AppDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [comment, setComment] = useState('');
   const [showPrompt, setShowPrompt] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -111,7 +104,7 @@ export default function AppDetail() {
 
   const toggleLike = useMutation({
     mutationFn: async () => {
-      if (!user) { toast.error('请先登录'); return; }
+      if (!user) { toast.error(t('app_detail.please_login')); return; }
       if (isLiked) await supabase.from('likes').delete().eq('app_id', id!).eq('user_id', user.id);
       else await supabase.from('likes').insert({ app_id: id!, user_id: user.id });
     },
@@ -120,7 +113,7 @@ export default function AppDetail() {
 
   const toggleFavorite = useMutation({
     mutationFn: async () => {
-      if (!user) { toast.error('请先登录'); return; }
+      if (!user) { toast.error(t('app_detail.please_login')); return; }
       if (isFavorited) await supabase.from('favorites').delete().eq('app_id', id!).eq('user_id', user.id);
       else await supabase.from('favorites').insert({ app_id: id!, user_id: user.id });
     },
@@ -129,12 +122,12 @@ export default function AppDetail() {
 
   const submitComment = useMutation({
     mutationFn: async () => {
-      if (!user) { toast.error('请先登录'); return; }
+      if (!user) { toast.error(t('app_detail.please_login')); return; }
       if (!comment.trim()) return;
       const { error } = await supabase.from('comments').insert({ app_id: id!, user_id: user.id, content: comment.trim() });
       if (error) throw error;
     },
-    onSuccess: () => { setComment(''); queryClient.invalidateQueries({ queryKey: ['comments', id] }); toast.success('评论已发布'); },
+    onSuccess: () => { setComment(''); queryClient.invalidateQueries({ queryKey: ['comments', id] }); toast.success(t('app_detail.comment_posted')); },
   });
 
   if (isLoading) {
@@ -150,8 +143,8 @@ export default function AppDetail() {
   if (!app) {
     return (
       <div className="container py-24 text-center text-muted-foreground">
-        <p>应用未找到</p>
-        <Link to="/" className="text-primary mt-2 inline-block">返回首页</Link>
+        <p>{t('app_detail.app_not_found')}</p>
+        <Link to="/" className="text-primary mt-2 inline-block">{t('app_detail.return_home')}</Link>
       </div>
     );
   }
@@ -165,7 +158,7 @@ export default function AppDetail() {
       <div className="container max-w-4xl py-8 space-y-8">
         <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          返回
+          {t('app_detail.back')}
         </Link>
 
         {/* Hero */}
@@ -186,12 +179,12 @@ export default function AppDetail() {
               <div className="flex items-center gap-2 flex-wrap">
                 {author && (
                   <p className="text-sm text-muted-foreground">
-                    由 <span className="text-foreground">{author.display_name}</span> 发布
+                    {t('app_detail.published_by')} <span className="text-foreground">{author.display_name}</span> {t('app_detail.published_suffix')}
                   </p>
                 )}
                 {a.access_type && (
                   <span className="text-xs rounded-md bg-primary/10 text-primary px-2 py-0.5">
-                    {ACCESS_LABELS[a.access_type] || a.access_type}
+                    {t(`access.${a.access_type}`, a.access_type)}
                   </span>
                 )}
               </div>
@@ -201,7 +194,7 @@ export default function AppDetail() {
               <a href={app.url} target="_blank" rel="noopener noreferrer">
                 <Button className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
                   <ExternalLink className="h-4 w-4" />
-                  立即体验
+                  {t('app_detail.experience')}
                 </Button>
               </a>
               <Button variant="outline" size="icon" onClick={() => toggleLike.mutate()} className={isLiked ? 'border-red-500/50 text-red-500' : ''}>
@@ -214,9 +207,9 @@ export default function AppDetail() {
           </div>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" /> {app.likes_count} 赞</span>
-            <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {app.views} 浏览</span>
-            <span className="flex items-center gap-1"><Bookmark className="h-3.5 w-3.5" /> {app.favorites_count} 收藏</span>
+            <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" /> {app.likes_count} {t('app_detail.likes')}</span>
+            <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {app.views} {t('app_detail.views')}</span>
+            <span className="flex items-center gap-1"><Bookmark className="h-3.5 w-3.5" /> {app.favorites_count} {t('app_detail.favorites')}</span>
           </div>
         </div>
 
@@ -231,8 +224,8 @@ export default function AppDetail() {
           )}
           {app.tech_stack && app.tech_stack.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {app.tech_stack.map((t) => (
-                <span key={t} className="rounded-md bg-primary/10 px-2.5 py-1 text-xs text-primary font-medium">{t}</span>
+              {app.tech_stack.map((tch) => (
+                <span key={tch} className="rounded-md bg-primary/10 px-2.5 py-1 text-xs text-primary font-medium">{tch}</span>
               ))}
             </div>
           )}
@@ -240,33 +233,31 @@ export default function AppDetail() {
 
         {/* Description */}
         <div className="animate-fade-up stagger-2 glass-card p-6">
-          <h2 className="text-lg font-semibold mb-3">应用介绍</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{app.description || '暂无介绍'}</p>
+          <h2 className="text-lg font-semibold mb-3">{t('app_detail.app_intro')}</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{app.description || t('app_detail.no_intro')}</p>
         </div>
 
-        {/* Visual Preview Section - Primary preview for all apps */}
+        {/* Visual Preview Section */}
         <div className="animate-fade-up stagger-2 space-y-4">
-          <h2 className="text-lg font-semibold">应用预览</h2>
+          <h2 className="text-lg font-semibold">{t('app_detail.app_preview')}</h2>
           <MediaGallery appId={app.id} />
 
-          {/* QR Code for mini programs */}
           {(qrMedia || a.mini_program_qr_url) && (
             <div className="glass-card p-6 space-y-3">
               <h3 className="text-sm font-semibold flex items-center gap-1.5">
                 <QrCode className="h-4 w-4 text-primary" />
-                扫码体验
+                {t('app_detail.scan_qr')}
               </h3>
               <div className="flex justify-center">
                 <img
                   src={qrMedia?.file_url || a.mini_program_qr_url}
-                  alt="小程序二维码"
+                  alt="QR Code"
                   className="max-w-[200px] rounded-lg border border-border/50"
                 />
               </div>
             </div>
           )}
 
-          {/* App Store / Download links */}
           {(a.app_store_url || a.android_download_url) && (
             <div className="glass-card p-4 space-y-2">
               {a.app_store_url && (
@@ -279,7 +270,7 @@ export default function AppDetail() {
               {a.android_download_url && (
                 <a href={a.android_download_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 hover:bg-secondary/50 transition-colors">
                   <Download className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Android 下载</span>
+                  <span className="text-sm">{t('app_detail.android_download')}</span>
                   <ExternalLink className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
                 </a>
               )}
@@ -290,13 +281,13 @@ export default function AppDetail() {
         {/* For Sale */}
         {a.is_for_sale && (
           <div className="animate-fade-up stagger-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 space-y-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2">💸 项目出售中</h2>
-            {a.price && <p className="text-sm"><span className="text-muted-foreground">售价：</span><span className="font-medium text-emerald-400">{a.price}</span></p>}
-            {a.contact_info && <p className="text-sm"><span className="text-muted-foreground">联系方式：</span><span className="font-medium">{a.contact_info}</span></p>}
+            <h2 className="text-lg font-semibold flex items-center gap-2">{t('app_detail.project_for_sale')}</h2>
+            {a.price && <p className="text-sm"><span className="text-muted-foreground">{t('app_detail.price')}：</span><span className="font-medium text-emerald-400">{a.price}</span></p>}
+            {a.contact_info && <p className="text-sm"><span className="text-muted-foreground">{t('app_detail.contact')}：</span><span className="font-medium">{a.contact_info}</span></p>}
           </div>
         )}
 
-        {/* Inline Preview (Beta) - Only for web platforms */}
+        {/* Inline Preview */}
         {isWebPlatform && (
           <div className="animate-fade-up stagger-3 glass-card overflow-hidden">
             <button
@@ -305,7 +296,7 @@ export default function AppDetail() {
             >
               <span className="flex items-center gap-2">
                 <Monitor className="h-4 w-4 text-primary" />
-                站内预览（Beta）
+                {t('app_detail.inline_preview')}
               </span>
               {showPreview ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -313,9 +304,9 @@ export default function AppDetail() {
               <div className="px-4 pb-4">
                 {iframeError ? (
                   <div className="rounded-lg bg-secondary/50 p-6 text-center space-y-3">
-                    <p className="text-sm text-muted-foreground">该网站不支持站内嵌入预览，请点击「立即体验」在新窗口打开。</p>
+                    <p className="text-sm text-muted-foreground">{t('app_detail.no_embed')}</p>
                     <a href={previewUrl} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" className="gap-1.5"><ExternalLink className="h-3.5 w-3.5" />在新窗口打开</Button>
+                      <Button size="sm" className="gap-1.5"><ExternalLink className="h-3.5 w-3.5" />{t('app_detail.open_new_window')}</Button>
                     </a>
                   </div>
                 ) : (
@@ -343,7 +334,7 @@ export default function AppDetail() {
         {app.prompt && (
           <div className="animate-fade-up stagger-3 glass-card overflow-hidden">
             <button onClick={() => setShowPrompt(!showPrompt)} className="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-card-hover transition-colors">
-              <span>查看 Prompt / 工作流</span>
+              <span>{t('app_detail.view_prompt')}</span>
               {showPrompt ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
             {showPrompt && (
@@ -358,15 +349,15 @@ export default function AppDetail() {
         <div className="animate-fade-up stagger-4 space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            评论 ({comments.length})
+            {t('app_detail.comments')} ({comments.length})
           </h2>
           {user && (
             <div className="glass-card p-4 space-y-3">
-              <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="写下你的想法..." className="min-h-[80px] bg-secondary/50 border-border/50 resize-none" />
+              <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('app_detail.write_comment')} className="min-h-[80px] bg-secondary/50 border-border/50 resize-none" />
               <div className="flex justify-end">
                 <Button size="sm" onClick={() => submitComment.mutate()} disabled={!comment.trim() || submitComment.isPending} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
                   <Send className="h-3.5 w-3.5" />
-                  发布评论
+                  {t('app_detail.submit_comment')}
                 </Button>
               </div>
             </div>
@@ -378,20 +369,20 @@ export default function AppDetail() {
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
                     {c.profile?.display_name?.[0] || 'U'}
                   </div>
-                  <span className="text-sm font-medium">{c.profile?.display_name || '匿名'}</span>
-                  <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString('zh-CN')}</span>
+                  <span className="text-sm font-medium">{c.profile?.display_name || t('app_detail.anonymous')}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</span>
                 </div>
                 <p className="text-sm text-muted-foreground pl-9">{c.content}</p>
               </div>
             ))}
-            {comments.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">还没有评论，来说点什么吧</p>}
+            {comments.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">{t('app_detail.no_comments')}</p>}
           </div>
         </div>
 
         {/* Similar */}
         {similar.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">相似应用</h2>
+            <h2 className="text-lg font-semibold">{t('app_detail.similar_apps')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {similar.map((s, i) => <AppCard key={s.id} app={s} index={i} />)}
             </div>
