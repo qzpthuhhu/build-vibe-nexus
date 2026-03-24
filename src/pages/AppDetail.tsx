@@ -16,6 +16,8 @@ import {
   QrCode, Download
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function AppDetail() {
   const { id } = useParams<{ id: string }>();
