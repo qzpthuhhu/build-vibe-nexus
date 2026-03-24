@@ -295,8 +295,28 @@ export default function Submit() {
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('submit_page.app_title_placeholder')} className="bg-secondary/50 border-border/50" required />
           </div>
           <div className="space-y-2">
-            <Label>{t('submit_page.app_desc')}</Label>
-            <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t('submit_page.app_desc_placeholder')} className="min-h-[120px] bg-secondary/50 border-border/50 resize-none" />
+            <div className="flex items-center justify-between">
+              <Label>{t('submit_page.app_desc')}</Label>
+              <div className="flex gap-1 rounded-md bg-secondary/50 p-0.5 text-xs">
+                <button type="button" onClick={() => setDescTab('write')} className={`px-2.5 py-1 rounded transition-colors ${descTab === 'write' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                  {t('submit_page.write', 'Write')}
+                </button>
+                <button type="button" onClick={() => setDescTab('preview')} className={`px-2.5 py-1 rounded transition-colors ${descTab === 'preview' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                  {t('submit_page.preview', 'Preview')}
+                </button>
+              </div>
+            </div>
+            {descTab === 'write' ? (
+              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t('submit_page.app_desc_placeholder')} className="min-h-[180px] bg-secondary/50 border-border/50 resize-none font-mono text-sm" />
+            ) : (
+              <div className="min-h-[180px] rounded-md border border-border/50 bg-secondary/50 p-4 prose prose-sm dark:prose-invert max-w-none text-muted-foreground prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-code:text-primary prose-code:bg-secondary prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-secondary prose-pre:text-foreground">
+                {form.description ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.description}</ReactMarkdown>
+                ) : (
+                  <p className="text-muted-foreground/50 italic">{t('submit_page.app_desc_placeholder')}</p>
+                )}
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label>{t('submit_page.tags')}</Label>
