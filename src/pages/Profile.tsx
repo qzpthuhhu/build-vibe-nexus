@@ -13,11 +13,37 @@ import { toast } from 'sonner';
 type Tab = 'apps' | 'favorites';
 
 export default function Profile() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [tab, setTab] = useState<Tab>('apps');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const updateName = useMutation({
+    mutationFn: async (name: string) => {
+      if (!user || !profile) throw new Error('Not authenticated');
+      if ((profile.credits ?? 0) < 10) throw new Error('insufficient_credits');
+      // Deduct credits
+      const { error: creditErr } = await supabase.from('profiles').update({ display_name: name, credits: (profile.credits ?? 0) - 10 }).eq('user_id', user.id);
+      if (creditErr) throw creditErr;
+      // Log transaction
+      await supabase.from('credit_transactions').insert({ user_id: user.id, amount: -10, type: 'rename', description: t('profile_page.rename_cost_desc') });
+    },
+    onSuccess: () => {
+      refreshProfile();
+      setIsEditingName(false);
+      toast.success(t('profile_page.rename_success'));
+    },
+    onError: (err: any) => {
+      if (err.message === 'insufficient_credits') {
+        toast.error(t('profile_page.insufficient_credits'));
+      } else {
+        toast.error(t('profile_page.success'));
+      }
+    },
+  });
 
   const { data: myApps = [] } = useQuery({
     queryKey: ['my-apps', user?.id],
