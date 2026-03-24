@@ -52,15 +52,15 @@ export default function Index() {
           style={{ background: 'linear-gradient(135deg, hsl(142 72% 46%), hsl(271 81% 56%), hsl(330 81% 60%))' }}
         />
         <div className="container relative py-20 md:py-28 text-center space-y-7">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.08] animate-fade-up">
+          <p className="text-sm md:text-base text-muted-foreground font-medium tracking-widest uppercase animate-fade-up">
+            AI 独立开发者发布平台
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.08] animate-fade-up stagger-1">
             Show Your{' '}
             <span className="text-gradient">Vibe Coding Apps</span>
           </h1>
-          <p className="mx-auto max-w-md text-base md:text-lg text-foreground/80 font-medium animate-fade-up stagger-1">
-            秀出你的 AI 应用，获取用户与反馈
-          </p>
-          <p className="mx-auto max-w-lg text-sm text-muted-foreground animate-fade-up stagger-2">
-            探索、发布、分享 AI 驱动的创新应用
+          <p className="mx-auto max-w-xl text-base md:text-lg text-foreground/80 font-medium animate-fade-up stagger-2">
+            发现好产品，发布你的应用，让更多人使用并持续增长
           </p>
           <div className="mx-auto max-w-md relative animate-fade-up stagger-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
