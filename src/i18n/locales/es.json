@@ -161,7 +161,9 @@
     "draft_saved": "Borrador guardado",
     "resubmitted": "Reenviado para revisión",
     "submit_success": "¡App enviada! 20 créditos ganados 🎉",
-    "publish_reward": "Recompensa de publicación"
+    "publish_reward": "Recompensa de publicación",
+    "write": "Escribir",
+    "preview": "Vista previa"
   },
   "not_found": {
     "title": "404",
