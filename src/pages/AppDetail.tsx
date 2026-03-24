@@ -184,7 +184,7 @@ export default function AppDetail() {
                 )}
                 {a.access_type && (
                   <span className="text-xs rounded-md bg-primary/10 text-primary px-2 py-0.5">
-                    {t(`access.${a.access_type}`, a.access_type)}
+                    {t(`access.${a.access_type}`, { defaultValue: a.access_type }) as string}
                   </span>
                 )}
               </div>
