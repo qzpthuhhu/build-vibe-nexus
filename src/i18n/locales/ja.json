@@ -161,7 +161,9 @@
     "draft_saved": "下書きを保存しました",
     "resubmitted": "再提出しました",
     "submit_success": "アプリを提出しました！20ポイント獲得 🎉",
-    "publish_reward": "公開ボーナス"
+    "publish_reward": "公開ボーナス",
+    "write": "編集",
+    "preview": "プレビュー"
   },
   "not_found": {
     "title": "404",

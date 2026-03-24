@@ -161,7 +161,9 @@
     "draft_saved": "Draft saved",
     "resubmitted": "Resubmitted for review",
     "submit_success": "App submitted! Earned 20 credits 🎉",
-    "publish_reward": "Publish reward"
+    "publish_reward": "Publish reward",
+    "write": "Write",
+    "preview": "Preview"
   },
   "not_found": {
     "title": "404",

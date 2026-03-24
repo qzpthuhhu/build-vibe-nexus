@@ -161,7 +161,9 @@
     "draft_saved": "Brouillon sauvegardé",
     "resubmitted": "Resoumis pour révision",
     "submit_success": "App soumise ! 20 crédits gagnés 🎉",
-    "publish_reward": "Récompense de publication"
+    "publish_reward": "Récompense de publication",
+    "write": "Écrire",
+    "preview": "Aperçu"
   },
   "not_found": {
     "title": "404",
