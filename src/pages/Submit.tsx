@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,34 +22,6 @@ import { ArrowLeft, Send, Sparkles, Save } from 'lucide-react';
 
 const TECH_OPTIONS = ['Lovable', 'Cursor', 'Dify', 'LangChain', 'OpenAI', 'Claude', 'V0', 'Bolt', 'Replit', '其他'];
 
-const STAGE_OPTIONS = [
-  { value: 'personal', label: '🧪 自用项目', desc: '个人使用，无用户' },
-  { value: 'early', label: '🌱 早期项目', desc: '已有用户，尚未变现' },
-  { value: 'revenue', label: '💰 已有收入', desc: '开始产生收入' },
-  { value: 'growing', label: '📈 持续增长', desc: '稳定收入中' },
-  { value: 'mature', label: '🚀 成熟项目', desc: '公司化/规模化' },
-];
-
-const PLATFORM_OPTIONS = [
-  { value: 'web', label: 'Web 网页端' },
-  { value: 'h5', label: '手机 H5' },
-  { value: 'wechat_mini', label: '微信小程序' },
-  { value: 'ios', label: 'iOS App' },
-  { value: 'android', label: 'Android App' },
-  { value: 'desktop', label: '桌面端' },
-  { value: 'multi', label: '多平台' },
-  { value: 'other', label: '其他' },
-];
-
-const ACCESS_OPTIONS = [
-  { value: 'public_link', label: '公开链接' },
-  { value: 'qr_code', label: '扫码体验' },
-  { value: 'invite_code', label: '邀请码体验' },
-  { value: 'app_store', label: '应用商店下载' },
-  { value: 'testflight', label: 'TestFlight' },
-  { value: 'private_beta', label: '私测中' },
-];
-
 interface MediaFile {
   id?: string;
   file_url: string;
@@ -63,6 +36,7 @@ export default function Submit() {
   const { id: editId } = useParams<{ id: string }>();
   const isEdit = !!editId;
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const [form, setForm] = useState({
     url: '',
@@ -89,7 +63,34 @@ export default function Submit() {
   const [docFiles, setDocFiles] = useState<MediaFile[]>([]);
   const [qrFiles, setQrFiles] = useState<MediaFile[]>([]);
 
-  // Load existing app data for editing
+  const STAGE_OPTIONS = [
+    { value: 'personal', label: t('stages.personal'), desc: t('stages.personal_desc') },
+    { value: 'early', label: t('stages.early'), desc: t('stages.early_desc') },
+    { value: 'revenue', label: t('stages.revenue'), desc: t('stages.revenue_desc') },
+    { value: 'growing', label: t('stages.growing'), desc: t('stages.growing_desc') },
+    { value: 'mature', label: t('stages.mature'), desc: t('stages.mature_desc') },
+  ];
+
+  const PLATFORM_OPTIONS = [
+    { value: 'web', label: t('platforms.web') },
+    { value: 'h5', label: t('platforms.h5') },
+    { value: 'wechat_mini', label: t('platforms.wechat_mini') },
+    { value: 'ios', label: t('platforms.ios') },
+    { value: 'android', label: t('platforms.android') },
+    { value: 'desktop', label: t('platforms.desktop') },
+    { value: 'multi', label: t('platforms.multi') },
+    { value: 'other', label: t('platforms.other') },
+  ];
+
+  const ACCESS_OPTIONS = [
+    { value: 'public_link', label: t('access.public_link') },
+    { value: 'qr_code', label: t('access.qr_code') },
+    { value: 'invite_code', label: t('access.invite_code') },
+    { value: 'app_store', label: t('access.app_store') },
+    { value: 'testflight', label: t('access.testflight') },
+    { value: 'private_beta', label: t('access.private_beta') },
+  ];
+
   const { data: existingApp } = useQuery({
     queryKey: ['edit-app', editId],
     queryFn: async () => {
@@ -182,12 +183,12 @@ export default function Submit() {
 
   const handleSubmit = async (e: React.FormEvent, asDraft = false) => {
     e.preventDefault();
-    if (!user) { toast.error('请先登录'); return; }
-    if (!form.url || !form.title) { toast.error('请填写应用链接和标题'); return; }
-    if (!asDraft && !form.monetization_stage) { toast.error('请选择项目阶段'); return; }
-    if (!asDraft && !form.platform_type) { toast.error('请选择运行平台'); return; }
+    if (!user) { toast.error(t('submit_page.login_first')); return; }
+    if (!form.url || !form.title) { toast.error(t('submit_page.fill_required')); return; }
+    if (!asDraft && !form.monetization_stage) { toast.error(t('submit_page.select_stage')); return; }
+    if (!asDraft && !form.platform_type) { toast.error(t('submit_page.select_platform')); return; }
     if (form.is_for_sale && !form.contact_info.trim()) {
-      toast.error('出售项目需填写联系方式');
+      toast.error(t('submit_page.sale_contact_required'));
       return;
     }
 
@@ -222,7 +223,7 @@ export default function Submit() {
         const { error } = await supabase.from('apps').update(appData).eq('id', editId!);
         if (error) throw error;
         await saveMedia(editId!);
-        toast.success(asDraft ? '草稿已保存' : '已重新提交审核');
+        toast.success(asDraft ? t('submit_page.draft_saved') : t('submit_page.resubmitted'));
       } else {
         const { data, error } = await supabase.from('apps').insert(appData).select('id').single();
         if (error) throw error;
@@ -233,20 +234,20 @@ export default function Submit() {
             user_id: user.id,
             amount: 20,
             type: 'publish',
-            description: '发布应用奖励',
+            description: t('submit_page.publish_reward'),
           });
           const { data: profileData } = await supabase.from('profiles').select('credits').eq('user_id', user.id).single();
           if (profileData) {
             await supabase.from('profiles').update({ credits: profileData.credits + 20 }).eq('user_id', user.id);
           }
-          toast.success('应用提交成功！获得 20 积分 🎉');
+          toast.success(t('submit_page.submit_success'));
         } else {
-          toast.success('草稿已保存');
+          toast.success(t('submit_page.draft_saved'));
         }
       }
       navigate('/profile');
     } catch (err: any) {
-      toast.error(err.message || '操作失败');
+      toast.error(err.message || t('auth.operation_failed'));
     } finally {
       setLoading(false);
     }
@@ -260,8 +261,8 @@ export default function Submit() {
   if (!user) {
     return (
       <div className="container max-w-lg py-24 text-center space-y-4">
-        <p className="text-muted-foreground">请先登录后再发布应用</p>
-        <Link to="/auth"><Button className="bg-primary text-primary-foreground">去登录</Button></Link>
+        <p className="text-muted-foreground">{t('submit_page.login_to_submit')}</p>
+        <Link to="/auth"><Button className="bg-primary text-primary-foreground">{t('submit_page.go_login')}</Button></Link>
       </div>
     );
   }
@@ -270,13 +271,13 @@ export default function Submit() {
     <div className="container max-w-2xl py-8 space-y-6">
       <Link to={isEdit ? '/profile' : '/'} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" />
-        返回
+        {t('submit_page.back')}
       </Link>
 
       <div className="animate-fade-up">
-        <h1 className="text-2xl font-bold mb-1">{isEdit ? '编辑应用' : '发布新应用'}</h1>
+        <h1 className="text-2xl font-bold mb-1">{isEdit ? t('submit_page.edit_app') : t('submit_page.submit_new')}</h1>
         <p className="text-sm text-muted-foreground">
-          {isEdit ? '修改应用信息后可重新提交审核' : '分享你的 AI 应用，获得 20 积分奖励'}
+          {isEdit ? t('submit_page.edit_desc') : t('submit_page.submit_desc')}
         </p>
       </div>
 
@@ -284,23 +285,23 @@ export default function Submit() {
         {/* Basic Info */}
         <div className="glass-card p-6 space-y-5">
           <div className="space-y-2">
-            <Label>应用链接 *</Label>
-            <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://your-app.lovable.app" className="bg-secondary/50 border-border/50" required />
+            <Label>{t('submit_page.app_url')} *</Label>
+            <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder={t('submit_page.app_url_placeholder')} className="bg-secondary/50 border-border/50" required />
           </div>
           <div className="space-y-2">
-            <Label>应用标题 *</Label>
-            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="给你的应用起一个吸引人的名字" className="bg-secondary/50 border-border/50" required />
+            <Label>{t('submit_page.app_title')} *</Label>
+            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('submit_page.app_title_placeholder')} className="bg-secondary/50 border-border/50" required />
           </div>
           <div className="space-y-2">
-            <Label>应用描述</Label>
-            <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="描述一下你的应用做了什么、解决了什么问题..." className="min-h-[120px] bg-secondary/50 border-border/50 resize-none" />
+            <Label>{t('submit_page.app_desc')}</Label>
+            <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t('submit_page.app_desc_placeholder')} className="min-h-[120px] bg-secondary/50 border-border/50 resize-none" />
           </div>
           <div className="space-y-2">
-            <Label>标签（用逗号分隔）</Label>
-            <Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="AI工具, 效率, 设计" className="bg-secondary/50 border-border/50" />
+            <Label>{t('submit_page.tags')}</Label>
+            <Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder={t('submit_page.tags_placeholder')} className="bg-secondary/50 border-border/50" />
           </div>
           <div className="space-y-2">
-            <Label>技术栈</Label>
+            <Label>{t('submit_page.tech_stack')}</Label>
             <div className="flex flex-wrap gap-2">
               {TECH_OPTIONS.map((tech) => (
                 <button
@@ -310,7 +311,7 @@ export default function Submit() {
                     setForm({
                       ...form,
                       tech_stack: form.tech_stack.includes(tech)
-                        ? form.tech_stack.filter((t) => t !== tech)
+                        ? form.tech_stack.filter((item) => item !== tech)
                         : [...form.tech_stack, tech],
                     })
                   }
@@ -328,15 +329,15 @@ export default function Submit() {
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              Prompt / 工作流（可选）
+              {t('submit_page.prompt_label')}
             </Label>
-            <Textarea value={form.prompt} onChange={(e) => setForm({ ...form, prompt: e.target.value })} placeholder="分享你使用的 Prompt 或工作流..." className="min-h-[100px] bg-secondary/50 border-border/50 resize-none font-mono text-xs" />
+            <Textarea value={form.prompt} onChange={(e) => setForm({ ...form, prompt: e.target.value })} placeholder={t('submit_page.prompt_placeholder')} className="min-h-[100px] bg-secondary/50 border-border/50 resize-none font-mono text-xs" />
           </div>
           <div className="space-y-2">
-            <Label>项目阶段 *</Label>
+            <Label>{t('submit_page.project_stage')} *</Label>
             <Select value={form.monetization_stage} onValueChange={(v) => setForm({ ...form, monetization_stage: v })}>
               <SelectTrigger className="bg-secondary/50 border-border/50">
-                <SelectValue placeholder="选择项目阶段" />
+                <SelectValue placeholder={t('submit_page.stage_placeholder')} />
               </SelectTrigger>
               <SelectContent>
                 {STAGE_OPTIONS.map((opt) => (
@@ -353,14 +354,14 @@ export default function Submit() {
         {/* Platform & Access */}
         <div className="glass-card p-6 space-y-5">
           <div>
-            <h3 className="text-sm font-semibold mb-1">📱 平台与体验</h3>
-            <p className="text-xs text-muted-foreground">选择应用运行平台和访问方式</p>
+            <h3 className="text-sm font-semibold mb-1">{t('submit_page.platform_access')}</h3>
+            <p className="text-xs text-muted-foreground">{t('submit_page.platform_access_desc')}</p>
           </div>
           <div className="space-y-2">
-            <Label>运行平台 *</Label>
+            <Label>{t('submit_page.platform')} *</Label>
             <Select value={form.platform_type} onValueChange={(v) => setForm({ ...form, platform_type: v })}>
               <SelectTrigger className="bg-secondary/50 border-border/50">
-                <SelectValue placeholder="选择运行平台" />
+                <SelectValue placeholder={t('submit_page.platform_placeholder')} />
               </SelectTrigger>
               <SelectContent>
                 {PLATFORM_OPTIONS.map((opt) => (
@@ -370,10 +371,10 @@ export default function Submit() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>访问方式</Label>
+            <Label>{t('submit_page.access_method')}</Label>
             <Select value={form.access_type} onValueChange={(v) => setForm({ ...form, access_type: v })}>
               <SelectTrigger className="bg-secondary/50 border-border/50">
-                <SelectValue placeholder="选择访问方式（可选）" />
+                <SelectValue placeholder={t('submit_page.access_placeholder')} />
               </SelectTrigger>
               <SelectContent>
                 {ACCESS_OPTIONS.map((opt) => (
@@ -383,37 +384,36 @@ export default function Submit() {
             </Select>
           </div>
 
-          {/* Conditional experience entry fields */}
           {showWebFields && (
             <div className="space-y-2 animate-fade-up">
-              <Label>Web 体验链接</Label>
+              <Label>{t('submit_page.web_experience_url')}</Label>
               <Input value={form.experience_url} onChange={(e) => setForm({ ...form, experience_url: e.target.value })} placeholder="https://your-app.com" className="bg-secondary/50 border-border/50" />
-              <p className="text-xs text-muted-foreground">用于站内预览的网页链接</p>
+              <p className="text-xs text-muted-foreground">{t('submit_page.web_url_hint')}</p>
             </div>
           )}
           {showMiniProgramFields && (
             <div className="space-y-3 animate-fade-up">
-              <Label>小程序二维码</Label>
+              <Label>{t('submit_page.mini_program_qr')}</Label>
               <MediaUploader
                 mediaType="qr_code"
                 files={qrFiles}
                 onChange={setQrFiles}
                 max={1}
-                label="上传小程序体验二维码"
+                label={t('submit_page.upload_qr')}
                 accept="image/*"
               />
             </div>
           )}
           {showIosFields && (
             <div className="space-y-2 animate-fade-up">
-              <Label>App Store / TestFlight 链接</Label>
-              <Input value={form.app_store_url} onChange={(e) => setForm({ ...form, app_store_url: e.target.value })} placeholder="https://apps.apple.com/... 或 TestFlight 链接" className="bg-secondary/50 border-border/50" />
+              <Label>{t('submit_page.appstore_link')}</Label>
+              <Input value={form.app_store_url} onChange={(e) => setForm({ ...form, app_store_url: e.target.value })} placeholder="https://apps.apple.com/..." className="bg-secondary/50 border-border/50" />
             </div>
           )}
           {showAndroidFields && (
             <div className="space-y-2 animate-fade-up">
-              <Label>Android 下载链接</Label>
-              <Input value={form.android_download_url} onChange={(e) => setForm({ ...form, android_download_url: e.target.value })} placeholder="应用商店链接或 APK 下载地址" className="bg-secondary/50 border-border/50" />
+              <Label>{t('submit_page.android_link')}</Label>
+              <Input value={form.android_download_url} onChange={(e) => setForm({ ...form, android_download_url: e.target.value })} placeholder={t('submit_page.android_placeholder')} className="bg-secondary/50 border-border/50" />
             </div>
           )}
         </div>
@@ -421,34 +421,34 @@ export default function Submit() {
         {/* Media Upload */}
         <div className="glass-card p-6 space-y-5">
           <div>
-            <h3 className="text-sm font-semibold mb-1">📸 媒体资料</h3>
-            <p className="text-xs text-muted-foreground">上传封面图、截图、演示视频和文档</p>
+            <h3 className="text-sm font-semibold mb-1">{t('submit_page.media')}</h3>
+            <p className="text-xs text-muted-foreground">{t('submit_page.media_desc')}</p>
           </div>
-          <MediaUploader mediaType="cover" files={coverFiles} onChange={setCoverFiles} max={1} label="封面图（1张）" accept="image/*" />
-          <MediaUploader mediaType="screenshot" files={screenshotFiles} onChange={setScreenshotFiles} max={6} label="应用截图（最多6张）" accept="image/*" />
-          <MediaUploader mediaType="video" files={videoFiles} onChange={setVideoFiles} max={1} label="演示视频（1个）" accept="video/*" />
-          <MediaUploader mediaType="document" files={docFiles} onChange={setDocFiles} max={5} label="文档附件（PDF等）" accept=".pdf,.doc,.docx" />
+          <MediaUploader mediaType="cover" files={coverFiles} onChange={setCoverFiles} max={1} label={t('submit_page.cover')} accept="image/*" />
+          <MediaUploader mediaType="screenshot" files={screenshotFiles} onChange={setScreenshotFiles} max={6} label={t('submit_page.screenshots')} accept="image/*" />
+          <MediaUploader mediaType="video" files={videoFiles} onChange={setVideoFiles} max={1} label={t('submit_page.video')} accept="video/*" />
+          <MediaUploader mediaType="document" files={docFiles} onChange={setDocFiles} max={5} label={t('submit_page.docs')} accept=".pdf,.doc,.docx" />
         </div>
 
         {/* Sale Section */}
         <div className="glass-card p-6 space-y-5">
           <div>
-            <h3 className="text-sm font-semibold mb-1">🏷️ 项目交易（可选）</h3>
-            <p className="text-xs text-muted-foreground">如果你想出售此项目，可以在此标记</p>
+            <h3 className="text-sm font-semibold mb-1">{t('submit_page.sale_section')}</h3>
+            <p className="text-xs text-muted-foreground">{t('submit_page.sale_desc')}</p>
           </div>
           <div className="flex items-center justify-between">
-            <Label>是否出售该项目</Label>
+            <Label>{t('submit_page.is_for_sale')}</Label>
             <Switch checked={form.is_for_sale} onCheckedChange={(v) => setForm({ ...form, is_for_sale: v })} />
           </div>
           {form.is_for_sale && (
             <div className="space-y-4 animate-fade-up">
               <div className="space-y-2">
-                <Label>售价</Label>
-                <Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="例如：500元 / $99 / 面议" className="bg-secondary/50 border-border/50" />
+                <Label>{t('submit_page.sale_price')}</Label>
+                <Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder={t('submit_page.price_placeholder')} className="bg-secondary/50 border-border/50" />
               </div>
               <div className="space-y-2">
-                <Label>联系方式 *</Label>
-                <Input value={form.contact_info} onChange={(e) => setForm({ ...form, contact_info: e.target.value })} placeholder="微信 / 邮箱 / Telegram" className="bg-secondary/50 border-border/50" required />
+                <Label>{t('submit_page.contact')} *</Label>
+                <Input value={form.contact_info} onChange={(e) => setForm({ ...form, contact_info: e.target.value })} placeholder={t('submit_page.contact_placeholder')} className="bg-secondary/50 border-border/50" required />
               </div>
             </div>
           )}
@@ -457,11 +457,11 @@ export default function Submit() {
         <div className="flex gap-3">
           <Button type="button" variant="outline" onClick={(e) => handleSubmit(e as any, true)} disabled={loading} className="flex-1 gap-2 h-11">
             <Save className="h-4 w-4" />
-            保存草稿
+            {t('submit_page.save_draft')}
           </Button>
           <Button type="submit" disabled={loading} className="flex-1 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11">
             <Send className="h-4 w-4" />
-            {loading ? '提交中...' : isEdit ? '重新提交审核' : '提交审核'}
+            {loading ? t('submit_page.submitting') : isEdit ? t('submit_page.resubmit') : t('submit_page.submit_review')}
           </Button>
         </div>
       </form>

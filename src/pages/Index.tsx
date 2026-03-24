@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AppCard from '@/components/AppCard';
@@ -7,15 +8,16 @@ import { Input } from '@/components/ui/input';
 
 type Tab = 'hot' | 'new' | 'for_sale';
 
-const tabs: { key: Tab; label: string; icon: typeof Flame }[] = [
-  { key: 'hot', label: '热门应用', icon: Flame },
-  { key: 'new', label: '最新发布', icon: Clock },
-  { key: 'for_sale', label: '💸 可购买项目', icon: ShoppingBag },
-];
-
 export default function Index() {
   const [activeTab, setActiveTab] = useState<Tab>('hot');
   const [search, setSearch] = useState('');
+  const { t } = useTranslation();
+
+  const tabs: { key: Tab; label: string; icon: typeof Flame }[] = [
+    { key: 'hot', label: t('tabs.hot'), icon: Flame },
+    { key: 'new', label: t('tabs.new'), icon: Clock },
+    { key: 'for_sale', label: t('tabs.for_sale'), icon: ShoppingBag },
+  ];
 
   const { data: apps = [], isLoading } = useQuery({
     queryKey: ['apps', activeTab, search],
@@ -47,25 +49,24 @@ export default function Index() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/50">
-        {/* Ambient glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full opacity-[0.07] blur-[120px]"
           style={{ background: 'linear-gradient(135deg, hsl(142 72% 46%), hsl(271 81% 56%), hsl(330 81% 60%))' }}
         />
         <div className="container relative py-20 md:py-28 text-center space-y-7">
           <p className="text-sm md:text-base text-muted-foreground font-medium tracking-widest uppercase animate-fade-up">
-            AI 独立开发者发布平台
+            {t('hero.tagline')}
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.08] animate-fade-up stagger-1">
-            Show Your{' '}
-            <span className="text-gradient">Vibe Coding Apps</span>
+            {t('hero.title_prefix')}
+            <span className="text-gradient">{t('hero.title_highlight')}</span>
           </h1>
           <p className="mx-auto max-w-xl text-base md:text-lg text-foreground/80 font-medium animate-fade-up stagger-2">
-            发现好产品，发布你的应用，让更多人使用并持续增长
+            {t('hero.subtitle')}
           </p>
           <div className="mx-auto max-w-md relative animate-fade-up stagger-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="搜索 AI 应用..."
+              placeholder={t('hero.search_placeholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 bg-card border-border/50 h-11"
@@ -111,8 +112,8 @@ export default function Index() {
           </div>
         ) : apps.length === 0 ? (
           <div className="py-24 text-center text-muted-foreground animate-fade-up">
-            <p className="text-lg">还没有应用</p>
-            <p className="text-sm mt-1">成为第一个发布者吧 🚀</p>
+            <p className="text-lg">{t('index.no_apps')}</p>
+            <p className="text-sm mt-1">{t('index.be_first')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

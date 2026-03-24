@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Heart, Eye, Bookmark } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -8,6 +9,8 @@ interface AppCardProps {
 }
 
 export default function AppCard({ app, index = 0 }: AppCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Link
       to={`/app/${app.id}`}
@@ -28,12 +31,12 @@ export default function AppCard({ app, index = 0 }: AppCardProps) {
         )}
         {(app as any).is_for_sale && (
           <span className="absolute top-2.5 right-2.5 rounded-md bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-            💸 出售中
+            {t('card.for_sale')}
           </span>
         )}
         {app.is_boosted && (
           <span className="absolute top-2.5 left-2.5 rounded-md bg-primary/90 px-2 py-0.5 text-xs font-medium text-primary-foreground backdrop-blur-sm">
-            🔥 推荐
+            {t('card.boosted')}
           </span>
         )}
       </div>

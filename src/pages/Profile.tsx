@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { Coins, Package, Bookmark, Pencil, Eye, Send, Undo2, Trash2, XCircle } from 'lucide-react';
+import { Coins, Package, Bookmark, Pencil, Eye, Send, Undo2, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/StatusBadge';
@@ -15,6 +16,7 @@ export default function Profile() {
   const [tab, setTab] = useState<Tab>('apps');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { data: myApps = [] } = useQuery({
     queryKey: ['my-apps', user?.id],
@@ -65,7 +67,7 @@ export default function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-apps'] });
-      toast.success('操作成功');
+      toast.success(t('profile_page.success'));
     },
   });
 
@@ -76,15 +78,15 @@ export default function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-apps'] });
-      toast.success('已删除');
+      toast.success(t('profile_page.deleted'));
     },
   });
 
   if (!user) {
     return (
       <div className="container py-24 text-center space-y-4">
-        <p className="text-muted-foreground">请先登录</p>
-        <Link to="/auth"><Button className="bg-primary text-primary-foreground">去登录</Button></Link>
+        <p className="text-muted-foreground">{t('profile_page.please_login')}</p>
+        <Link to="/auth"><Button className="bg-primary text-primary-foreground">{t('profile_page.go_login')}</Button></Link>
       </div>
     );
   }
@@ -103,20 +105,20 @@ export default function Profile() {
         <div className="flex items-center gap-2 text-sm shrink-0">
           <Coins className="h-4 w-4 text-primary" />
           <span className="font-semibold">{profile?.credits ?? 0}</span>
-          <span className="text-muted-foreground">积分</span>
+          <span className="text-muted-foreground">{t('profile_page.credits')}</span>
         </div>
       </div>
 
       {/* Credit History */}
       {transactions.length > 0 && (
         <div className="animate-fade-up stagger-1 glass-card p-4">
-          <h3 className="text-sm font-semibold mb-3">积分记录</h3>
+          <h3 className="text-sm font-semibold mb-3">{t('profile_page.credit_history')}</h3>
           <div className="space-y-2">
-            {transactions.map((t) => (
-              <div key={t.id} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{t.description}</span>
-                <span className={t.amount > 0 ? 'text-primary font-medium' : 'text-destructive'}>
-                  {t.amount > 0 ? '+' : ''}{t.amount}
+            {transactions.map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{tx.description}</span>
+                <span className={tx.amount > 0 ? 'text-primary font-medium' : 'text-destructive'}>
+                  {tx.amount > 0 ? '+' : ''}{tx.amount}
                 </span>
               </div>
             ))}
@@ -133,7 +135,7 @@ export default function Profile() {
           }`}
         >
           <Package className="h-4 w-4" />
-          我的应用 ({myApps.length})
+          {t('profile_page.my_apps')} ({myApps.length})
         </button>
         <button
           onClick={() => setTab('favorites')}
@@ -142,7 +144,7 @@ export default function Profile() {
           }`}
         >
           <Bookmark className="h-4 w-4" />
-          我的收藏
+          {t('profile_page.my_favorites')}
         </button>
       </div>
 
@@ -151,13 +153,12 @@ export default function Profile() {
         <div className="space-y-3">
           {myApps.length === 0 ? (
             <div className="py-16 text-center text-muted-foreground">
-              <p>还没有发布应用</p>
+              <p>{t('profile_page.no_apps')}</p>
             </div>
           ) : (
             myApps.map((app: any, i: number) => (
               <div key={app.id} className={`glass-card p-4 animate-fade-up stagger-${Math.min(i % 4, 4)}`}>
                 <div className="flex items-start gap-4">
-                  {/* Thumbnail */}
                   <div className="w-20 h-14 rounded-lg overflow-hidden bg-secondary shrink-0">
                     {app.cover_image ? (
                       <img src={app.cover_image} alt={app.title} className="h-full w-full object-cover" />
@@ -165,21 +166,19 @@ export default function Profile() {
                       <div className="h-full w-full flex items-center justify-center text-primary/30 font-bold">{app.title[0]}</div>
                     )}
                   </div>
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-sm font-semibold truncate">{app.title}</h3>
                       <StatusBadge status={app.status} />
                       {app.is_for_sale && (
-                        <span className="text-[10px] px-1.5 py-0 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">出售中</span>
+                        <span className="text-[10px] px-1.5 py-0 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">{t('profile_page.for_sale')}</span>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1">{app.description}</p>
                     {app.rejection_reason && app.status === 'rejected' && (
-                      <p className="text-xs text-destructive mt-1">驳回原因：{app.rejection_reason}</p>
+                      <p className="text-xs text-destructive mt-1">{t('profile_page.reject_reason')}：{app.rejection_reason}</p>
                     )}
                   </div>
-                  {/* Actions */}
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/app/${app.id}`)}>
                       <Eye className="h-3.5 w-3.5" />
@@ -203,7 +202,7 @@ export default function Profile() {
                         size="icon"
                         className="h-8 w-8 text-amber-400"
                         onClick={() => updateStatus.mutate({ appId: app.id, status: 'draft' })}
-                        title="撤回审核"
+                        title={t('profile_page.withdraw_review')}
                       >
                         <Undo2 className="h-3.5 w-3.5" />
                       </Button>
@@ -226,11 +225,11 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Favorites tab (card grid) */}
+      {/* Favorites tab */}
       {tab === 'favorites' && (
         favorites.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
-            <p>还没有收藏</p>
+            <p>{t('profile_page.no_favorites')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AppCard from '@/components/AppCard';
@@ -6,14 +7,15 @@ import { Trophy, Heart, Bookmark, ShoppingBag } from 'lucide-react';
 
 type Tab = 'likes' | 'favorites' | 'for_sale';
 
-const tabs: { key: Tab; label: string; icon: typeof Trophy }[] = [
-  { key: 'likes', label: '热门榜', icon: Heart },
-  { key: 'favorites', label: '收藏榜', icon: Bookmark },
-  { key: 'for_sale', label: '可购买榜', icon: ShoppingBag },
-];
-
 export default function Ranking() {
   const [activeTab, setActiveTab] = useState<Tab>('likes');
+  const { t } = useTranslation();
+
+  const tabs: { key: Tab; label: string; icon: typeof Trophy }[] = [
+    { key: 'likes', label: t('ranking_page.likes_tab'), icon: Heart },
+    { key: 'favorites', label: t('ranking_page.favorites_tab'), icon: Bookmark },
+    { key: 'for_sale', label: t('ranking_page.for_sale_tab'), icon: ShoppingBag },
+  ];
 
   const { data: apps = [], isLoading } = useQuery({
     queryKey: ['ranking', activeTab],
@@ -38,9 +40,9 @@ export default function Ranking() {
       <div className="animate-fade-up">
         <div className="flex items-center gap-2 mb-1">
           <Trophy className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">排行榜</h1>
+          <h1 className="text-2xl font-bold">{t('ranking_page.title')}</h1>
         </div>
-        <p className="text-sm text-muted-foreground">最受欢迎的 AI 应用</p>
+        <p className="text-sm text-muted-foreground">{t('ranking_page.subtitle')}</p>
       </div>
 
       <div className="flex items-center gap-1 animate-fade-up stagger-1">

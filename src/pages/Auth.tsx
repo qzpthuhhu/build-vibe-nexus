@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,14 +24,14 @@ export default function Auth() {
     try {
       if (isLogin) {
         await signIn(email, password);
-        toast.success('登录成功');
+        toast.success(t('auth.login_success'));
         navigate('/');
       } else {
         await signUp(email, password, displayName);
-        toast.success('注册成功！请查看邮箱验证链接');
+        toast.success(t('auth.signup_success'));
       }
     } catch (err: any) {
-      toast.error(err.message || '操作失败');
+      toast.error(err.message || t('auth.operation_failed'));
     } finally {
       setLoading(false);
     }
@@ -44,26 +46,26 @@ export default function Auth() {
               <Zap className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold">{isLogin ? '欢迎回来' : '创建账户'}</h1>
+          <h1 className="text-2xl font-bold">{isLogin ? t('auth.welcome_back') : t('auth.create_account')}</h1>
           <p className="text-sm text-muted-foreground">
-            {isLogin ? '登录以发布和管理你的应用' : '注册即送 100 积分'}
+            {isLogin ? t('auth.login_desc') : t('auth.signup_desc')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div className="space-y-2">
-              <Label>昵称</Label>
+              <Label>{t('auth.nickname')}</Label>
               <Input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="你的显示名称"
+                placeholder={t('auth.nickname_placeholder')}
                 className="bg-card border-border/50"
               />
             </div>
           )}
           <div className="space-y-2">
-            <Label>邮箱</Label>
+            <Label>{t('auth.email')}</Label>
             <Input
               type="email"
               value={email}
@@ -74,12 +76,12 @@ export default function Auth() {
             />
           </div>
           <div className="space-y-2">
-            <Label>密码</Label>
+            <Label>{t('auth.password')}</Label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="至少 6 位字符"
+              placeholder={t('auth.password_placeholder')}
               className="bg-card border-border/50"
               required
               minLength={6}
@@ -91,17 +93,17 @@ export default function Auth() {
             disabled={loading}
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11"
           >
-            {loading ? '处理中...' : isLogin ? '登录' : '注册'}
+            {loading ? t('auth.processing') : isLogin ? t('auth.login_btn') : t('auth.signup_btn')}
           </Button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
-          {isLogin ? '还没有账户？' : '已有账户？'}
+          {isLogin ? t('auth.no_account') : t('auth.has_account')}
           <button
             onClick={() => setIsLogin(!isLogin)}
             className="ml-1 text-primary hover:underline font-medium"
           >
-            {isLogin ? '去注册' : '去登录'}
+            {isLogin ? t('auth.go_signup') : t('auth.go_login')}
           </button>
         </p>
       </div>
