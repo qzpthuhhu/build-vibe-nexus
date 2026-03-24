@@ -16,8 +16,8 @@
     --popover: 160 15% 7%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 271 81% 56%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 142 72% 46%;
+    --primary-foreground: 160 20% 4%;
 
     --secondary: 160 10% 13%;
     --secondary-foreground: 0 0% 98%;
@@ -33,21 +33,21 @@
 
     --border: 160 8% 14%;
     --input: 160 8% 14%;
-    --ring: 271 81% 56%;
+    --ring: 142 72% 46%;
 
     --radius: 0.625rem;
 
     --sidebar-background: 160 15% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 271 81% 56%;
+    --sidebar-primary: 142 72% 46%;
     --sidebar-primary-foreground: 160 20% 4%;
     --sidebar-accent: 160 8% 13%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 160 8% 14%;
-    --sidebar-ring: 271 81% 56%;
+    --sidebar-ring: 142 72% 46%;
 
     --success: 142 72% 46%;
-    --primary-glow: 271 81% 66%;
+    --accent-purple: 271 81% 56%;
     --warning: 38 92% 50%;
     --info: 217 91% 60%;
   }
@@ -94,7 +94,7 @@
 
   .hover-lift:hover {
     @apply -translate-y-0.5;
-    box-shadow: 0 8px 30px -12px hsl(271 81% 56% / 0.2);
+    box-shadow: 0 8px 30px -12px hsl(142 72% 46% / 0.15);
   }
 }
 
