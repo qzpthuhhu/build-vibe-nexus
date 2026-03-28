@@ -165,7 +165,7 @@
     "write": "Schreiben",
     "preview": "Vorschau",
     "auto_parse": "Auto-Analyse",
-    "auto_parse_hint": "URL eingeben und auf „Auto-Analyse" klicken, um App-Infos automatisch zu extrahieren",
+    "auto_parse_hint": "URL eingeben und auf Auto-Analyse klicken, um App-Infos automatisch zu extrahieren",
     "parsing": "Web-Informationen werden analysiert...",
     "parse_success": "Analyse erfolgreich, Infos wurden ausgefüllt",
     "parse_failed": "Analyse fehlgeschlagen, bitte manuell ausfüllen",
