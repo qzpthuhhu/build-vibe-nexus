@@ -163,7 +163,16 @@
     "submit_success": "アプリを提出しました！20ポイント獲得 🎉",
     "publish_reward": "公開ボーナス",
     "write": "編集",
-    "preview": "プレビュー"
+    "preview": "プレビュー",
+    "auto_parse": "自動解析",
+    "auto_parse_hint": "URLを入力して「自動解析」をクリックすると、アプリ情報が自動抽出されます",
+    "parsing": "ウェブ情報を解析中...",
+    "parse_success": "解析成功、情報が自動入力されました",
+    "parse_failed": "解析に失敗しました。手動で入力してください",
+    "reparse": "再解析",
+    "retry": "再試行",
+    "fill_url_first": "先にURLを入力してください",
+    "pending_tbd": "⏳ 未定"
   },
   "not_found": {
     "title": "404",

@@ -163,7 +163,16 @@
     "submit_success": "¡App enviada! 20 créditos ganados 🎉",
     "publish_reward": "Recompensa de publicación",
     "write": "Escribir",
-    "preview": "Vista previa"
+    "preview": "Vista previa",
+    "auto_parse": "Análisis auto",
+    "auto_parse_hint": "Ingresa una URL y haz clic en \"Análisis auto\" para extraer la info automáticamente",
+    "parsing": "Analizando información web...",
+    "parse_success": "Análisis exitoso, la info se ha completado",
+    "parse_failed": "Error en el análisis, completa manualmente",
+    "reparse": "Re-analizar",
+    "retry": "Reintentar",
+    "fill_url_first": "Primero ingresa una URL",
+    "pending_tbd": "⏳ Pendiente"
   },
   "not_found": {
     "title": "404",

@@ -163,7 +163,16 @@
     "submit_success": "App eingereicht! 20 Punkte verdient 🎉",
     "publish_reward": "Veröffentlichungsbonus",
     "write": "Schreiben",
-    "preview": "Vorschau"
+    "preview": "Vorschau",
+    "auto_parse": "Auto-Analyse",
+    "auto_parse_hint": "URL eingeben und auf „Auto-Analyse" klicken, um App-Infos automatisch zu extrahieren",
+    "parsing": "Web-Informationen werden analysiert...",
+    "parse_success": "Analyse erfolgreich, Infos wurden ausgefüllt",
+    "parse_failed": "Analyse fehlgeschlagen, bitte manuell ausfüllen",
+    "reparse": "Erneut analysieren",
+    "retry": "Wiederholen",
+    "fill_url_first": "Bitte zuerst eine URL eingeben",
+    "pending_tbd": "⏳ Ausstehend"
   },
   "not_found": {
     "title": "404",

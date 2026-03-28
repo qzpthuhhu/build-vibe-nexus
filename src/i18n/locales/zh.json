@@ -163,7 +163,16 @@
     "submit_success": "应用提交成功！获得 20 积分 🎉",
     "publish_reward": "发布应用奖励",
     "write": "编辑",
-    "preview": "预览"
+    "preview": "预览",
+    "auto_parse": "智能解析",
+    "auto_parse_hint": "输入链接后点击「智能解析」自动提取应用信息",
+    "parsing": "正在解析网页信息...",
+    "parse_success": "解析成功，信息已自动填入",
+    "parse_failed": "解析失败，请手动填写",
+    "reparse": "重新解析",
+    "retry": "重试",
+    "fill_url_first": "请先输入应用链接",
+    "pending_tbd": "⏳ 待定"
   },
   "not_found": {
     "title": "404",

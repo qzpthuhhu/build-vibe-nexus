@@ -163,7 +163,16 @@
     "submit_success": "앱이 제출되었습니다! 20 포인트 획득 🎉",
     "publish_reward": "게시 보상",
     "write": "작성",
-    "preview": "미리보기"
+    "preview": "미리보기",
+    "auto_parse": "자동 분석",
+    "auto_parse_hint": "URL을 입력하고 '자동 분석'을 클릭하면 앱 정보가 자동으로 추출됩니다",
+    "parsing": "웹 정보 분석 중...",
+    "parse_success": "분석 성공, 정보가 자동 입력되었습니다",
+    "parse_failed": "분석 실패, 수동으로 입력해주세요",
+    "reparse": "다시 분석",
+    "retry": "재시도",
+    "fill_url_first": "먼저 URL을 입력해주세요",
+    "pending_tbd": "⏳ 미정"
   },
   "not_found": {
     "title": "404",
