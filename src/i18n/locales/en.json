@@ -163,7 +163,16 @@
     "submit_success": "App submitted! Earned 20 credits 🎉",
     "publish_reward": "Publish reward",
     "write": "Write",
-    "preview": "Preview"
+    "preview": "Preview",
+    "auto_parse": "Auto Parse",
+    "auto_parse_hint": "Enter a URL and click \"Auto Parse\" to extract app info automatically",
+    "parsing": "Parsing website info...",
+    "parse_success": "Parsed successfully, info has been filled in",
+    "parse_failed": "Failed to parse, please fill in manually",
+    "reparse": "Re-parse",
+    "retry": "Retry",
+    "fill_url_first": "Please enter a URL first",
+    "pending_tbd": "⏳ Pending"
   },
   "not_found": {
     "title": "404",

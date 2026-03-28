@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import MediaUploader from '@/components/MediaUploader';
 import { toast } from 'sonner';
-import { ArrowLeft, Send, Sparkles, Save } from 'lucide-react';
+import { ArrowLeft, Send, Sparkles, Save, Loader2, Globe, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
 
 const TECH_OPTIONS = ['Lovable', 'Cursor', 'Dify', 'LangChain', 'OpenAI', 'Claude', 'V0', 'Bolt', 'Replit', '其他'];
 
@@ -32,6 +33,8 @@ interface MediaFile {
   sort_order: number;
 }
 
+type ParseStatus = 'idle' | 'parsing' | 'success' | 'error';
+
 export default function Submit() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -40,6 +43,10 @@ export default function Submit() {
   const [loading, setLoading] = useState(false);
   const [descTab, setDescTab] = useState<'write' | 'preview'>('write');
   const { t } = useTranslation();
+
+  const [parseStatus, setParseStatus] = useState<ParseStatus>('idle');
+  const [parseProgress, setParseProgress] = useState(0);
+  const [parseError, setParseError] = useState('');
 
   const [form, setForm] = useState({
     url: '',
@@ -67,6 +74,7 @@ export default function Submit() {
   const [qrFiles, setQrFiles] = useState<MediaFile[]>([]);
 
   const STAGE_OPTIONS = [
+    { value: 'pending_tbd', label: t('submit_page.pending_tbd') },
     { value: 'personal', label: t('stages.personal'), desc: t('stages.personal_desc') },
     { value: 'early', label: t('stages.early'), desc: t('stages.early_desc') },
     { value: 'revenue', label: t('stages.revenue'), desc: t('stages.revenue_desc') },
@@ -75,6 +83,7 @@ export default function Submit() {
   ];
 
   const PLATFORM_OPTIONS = [
+    { value: 'pending_tbd', label: t('submit_page.pending_tbd') },
     { value: 'web', label: t('platforms.web') },
     { value: 'h5', label: t('platforms.h5') },
     { value: 'wechat_mini', label: t('platforms.wechat_mini') },
@@ -86,6 +95,7 @@ export default function Submit() {
   ];
 
   const ACCESS_OPTIONS = [
+    { value: 'pending_tbd', label: t('submit_page.pending_tbd') },
     { value: 'public_link', label: t('access.public_link') },
     { value: 'qr_code', label: t('access.qr_code') },
     { value: 'invite_code', label: t('access.invite_code') },
@@ -166,6 +176,72 @@ export default function Submit() {
     }
   }, [existingMedia]);
 
+  // Auto-parse URL
+  const handleParseUrl = async () => {
+    if (!form.url.trim()) {
+      toast.error(t('submit_page.fill_url_first'));
+      return;
+    }
+
+    setParseStatus('parsing');
+    setParseProgress(10);
+    setParseError('');
+
+    try {
+      setParseProgress(30);
+      const { data, error } = await supabase.functions.invoke('parse-url', {
+        body: { url: form.url.trim() },
+      });
+
+      setParseProgress(70);
+
+      if (error || !data?.success) {
+        throw new Error(error?.message || data?.error || t('submit_page.parse_failed'));
+      }
+
+      const parsed = data.data;
+      setParseProgress(90);
+
+      // Fill form with parsed data
+      setForm(prev => ({
+        ...prev,
+        title: parsed.title || prev.title,
+        description: parsed.description || prev.description,
+        tags: parsed.tags?.length > 0 ? parsed.tags.join(', ') : prev.tags,
+        platform_type: parsed.platform || 'pending_tbd',
+        access_type: prev.access_type || 'pending_tbd',
+        monetization_stage: prev.monetization_stage || 'pending_tbd',
+      }));
+
+      // Use screenshot as cover and screenshot
+      if (parsed.screenshotUrl) {
+        const screenshotFile: MediaFile = {
+          file_url: parsed.screenshotUrl,
+          file_name: 'auto-screenshot.jpg',
+          media_type: 'cover',
+          sort_order: 0,
+        };
+        if (coverFiles.length === 0) {
+          setCoverFiles([screenshotFile]);
+        }
+        if (screenshotFiles.length === 0) {
+          setScreenshotFiles([{
+            ...screenshotFile,
+            media_type: 'screenshot',
+          }]);
+        }
+      }
+
+      setParseProgress(100);
+      setParseStatus('success');
+      toast.success(t('submit_page.parse_success'));
+    } catch (err: any) {
+      setParseStatus('error');
+      setParseError(err.message || t('submit_page.parse_failed'));
+      toast.error(err.message || t('submit_page.parse_failed'));
+    }
+  };
+
   const saveMedia = async (appId: string) => {
     if (isEdit) {
       await supabase.from('app_media').delete().eq('app_id', appId);
@@ -199,6 +275,10 @@ export default function Submit() {
     try {
       const coverUrl = coverFiles.length > 0 ? coverFiles[0].file_url : null;
       const qrUrl = qrFiles.length > 0 ? qrFiles[0].file_url : form.mini_program_qr_url || null;
+      const stage = form.monetization_stage === 'pending_tbd' ? null : form.monetization_stage;
+      const platform = form.platform_type === 'pending_tbd' ? null : form.platform_type;
+      const access = form.access_type === 'pending_tbd' ? null : form.access_type;
+
       const appData = {
         user_id: user.id,
         url: form.url,
@@ -208,14 +288,14 @@ export default function Submit() {
         tags: form.tags.split(/[,，、]/).map(t => t.trim()).filter(Boolean),
         tech_stack: form.tech_stack,
         prompt: form.prompt || null,
-        monetization_stage: form.monetization_stage || null,
+        monetization_stage: stage || null,
         is_for_sale: form.is_for_sale,
         price: form.is_for_sale ? (form.price || null) : null,
         contact_info: form.is_for_sale ? form.contact_info : null,
         status: asDraft ? 'draft' : 'pending',
         submitted_at: asDraft ? null : new Date().toISOString(),
-        platform_type: form.platform_type || null,
-        access_type: form.access_type || null,
+        platform_type: platform || null,
+        access_type: access || null,
         experience_url: form.experience_url || null,
         mini_program_qr_url: qrUrl,
         app_store_url: form.app_store_url || null,
@@ -285,12 +365,78 @@ export default function Submit() {
       </div>
 
       <form onSubmit={(e) => handleSubmit(e, false)} className="animate-fade-up stagger-1 space-y-5">
-        {/* Basic Info */}
+        {/* URL + Auto Parse */}
         <div className="glass-card p-6 space-y-5">
           <div className="space-y-2">
             <Label>{t('submit_page.app_url')} *</Label>
-            <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder={t('submit_page.app_url_placeholder')} className="bg-secondary/50 border-border/50" required />
+            <div className="flex gap-2">
+              <Input
+                value={form.url}
+                onChange={(e) => setForm({ ...form, url: e.target.value })}
+                placeholder={t('submit_page.app_url_placeholder')}
+                className="bg-secondary/50 border-border/50 flex-1"
+                required
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleParseUrl}
+                disabled={parseStatus === 'parsing' || !form.url.trim()}
+                className="gap-1.5 shrink-0"
+              >
+                {parseStatus === 'parsing' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Globe className="h-4 w-4" />
+                )}
+                {t('submit_page.auto_parse')}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">{t('submit_page.auto_parse_hint')}</p>
           </div>
+
+          {/* Parse Progress */}
+          {parseStatus !== 'idle' && (
+            <div className="space-y-2 animate-fade-up">
+              {parseStatus === 'parsing' && (
+                <>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    {t('submit_page.parsing')}
+                  </div>
+                  <Progress value={parseProgress} className="h-2" />
+                </>
+              )}
+              {parseStatus === 'success' && (
+                <div className="flex items-center justify-between rounded-md bg-primary/10 border border-primary/20 px-3 py-2">
+                  <div className="flex items-center gap-2 text-sm text-primary">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {t('submit_page.parse_success')}
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={handleParseUrl} className="h-7 gap-1 text-xs">
+                    <RotateCcw className="h-3 w-3" />
+                    {t('submit_page.reparse')}
+                  </Button>
+                </div>
+              )}
+              {parseStatus === 'error' && (
+                <div className="flex items-center justify-between rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2">
+                  <div className="flex items-center gap-2 text-sm text-destructive">
+                    <XCircle className="h-4 w-4" />
+                    {parseError || t('submit_page.parse_failed')}
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={handleParseUrl} className="h-7 gap-1 text-xs">
+                    <RotateCcw className="h-3 w-3" />
+                    {t('submit_page.retry')}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Basic Info */}
+        <div className="glass-card p-6 space-y-5">
           <div className="space-y-2">
             <Label>{t('submit_page.app_title')} *</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('submit_page.app_title_placeholder')} className="bg-secondary/50 border-border/50" required />
@@ -366,7 +512,7 @@ export default function Submit() {
                 {STAGE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     <span>{opt.label}</span>
-                    <span className="ml-2 text-muted-foreground text-xs">{opt.desc}</span>
+                    {opt.desc && <span className="ml-2 text-muted-foreground text-xs">{opt.desc}</span>}
                   </SelectItem>
                 ))}
               </SelectContent>
