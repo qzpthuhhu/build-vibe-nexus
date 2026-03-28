@@ -200,7 +200,7 @@ export default function Submit() {
       }
 
       const parsed = data.data;
-      setParseProgress(90);
+      setParseProgress(80);
 
       // Fill form with parsed data
       setForm(prev => ({
@@ -213,22 +213,50 @@ export default function Submit() {
         monetization_stage: prev.monetization_stage || 'pending_tbd',
       }));
 
-      // Use screenshot as cover and screenshot
-      if (parsed.screenshotUrl) {
-        const screenshotFile: MediaFile = {
-          file_url: parsed.screenshotUrl,
-          file_name: 'auto-screenshot.jpg',
-          media_type: 'cover',
-          sort_order: 0,
-        };
-        if (coverFiles.length === 0) {
-          setCoverFiles([screenshotFile]);
-        }
-        if (screenshotFiles.length === 0) {
-          setScreenshotFiles([{
-            ...screenshotFile,
-            media_type: 'screenshot',
-          }]);
+      // Upload screenshot base64 to storage if available
+      if (parsed.screenshotBase64 && user) {
+        setParseProgress(90);
+        try {
+          const base64Data = parsed.screenshotBase64;
+          const mimeMatch = base64Data.match(/^data:(image\/\w+);base64,/);
+          const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+          const ext = mime === 'image/jpeg' ? 'jpg' : 'png';
+          const raw = atob(base64Data.replace(/^data:image\/\w+;base64,/, ''));
+          const arr = new Uint8Array(raw.length);
+          for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+          const blob = new Blob([arr], { type: mime });
+
+          const fileName = `${user.id}/${Date.now()}-screenshot.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from('app-media')
+            .upload(fileName, blob, { contentType: mime, upsert: true });
+
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage
+              .from('app-media')
+              .getPublicUrl(fileName);
+            const publicUrl = urlData.publicUrl;
+
+            const screenshotFile: MediaFile = {
+              file_url: publicUrl,
+              file_name: `screenshot.${ext}`,
+              media_type: 'cover',
+              sort_order: 0,
+            };
+            if (coverFiles.length === 0) {
+              setCoverFiles([screenshotFile]);
+            }
+            if (screenshotFiles.length === 0) {
+              setScreenshotFiles([{
+                ...screenshotFile,
+                media_type: 'screenshot',
+              }]);
+            }
+          } else {
+            console.error('Screenshot upload failed:', uploadError);
+          }
+        } catch (e) {
+          console.error('Screenshot processing error:', e);
         }
       }
 
