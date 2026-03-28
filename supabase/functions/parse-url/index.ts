@@ -58,48 +58,65 @@ function extractFavicon(html: string, baseUrl: string): string | null {
 }
 
 async function fetchScreenshotBase64(url: string): Promise<string | null> {
-  const screenshotApis = [
-    `https://image.thum.io/get/width/1280/crop/800/noanimate/${encodeURIComponent(url)}`,
-    `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`,
-  ];
-
-  for (const apiUrl of screenshotApis) {
-    try {
-      console.log('Trying screenshot API:', apiUrl);
-
-      // For microlink, the response is JSON with the screenshot URL
-      if (apiUrl.includes('microlink.io')) {
-        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(15000) });
-        if (!resp.ok) continue;
-        const json = await resp.json();
-        const imgUrl = json?.data?.screenshot?.url;
-        if (!imgUrl) continue;
+  // Try microlink API first (returns JSON with screenshot URL)
+  try {
+    console.log('Trying microlink API...');
+    const mlResp = await fetch(
+      `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false`,
+      { signal: AbortSignal.timeout(20000) }
+    );
+    if (mlResp.ok) {
+      const json = await mlResp.json();
+      const imgUrl = json?.data?.screenshot?.url;
+      if (imgUrl) {
+        console.log('Got microlink screenshot URL:', imgUrl);
         const imgResp = await fetch(imgUrl, { signal: AbortSignal.timeout(10000) });
-        if (!imgResp.ok) continue;
-        const buf = await imgResp.arrayBuffer();
-        if (buf.byteLength < 1000) continue;
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-        const contentType = imgResp.headers.get('content-type') || 'image/png';
-        return `data:${contentType};base64,${base64}`;
+        if (imgResp.ok) {
+          const buf = await imgResp.arrayBuffer();
+          if (buf.byteLength > 1000) {
+            const bytes = new Uint8Array(buf);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            const base64 = btoa(binary);
+            const contentType = imgResp.headers.get('content-type') || 'image/png';
+            return `data:${contentType};base64,${base64}`;
+          }
+        }
       }
-
-      // For thum.io, the response is the image directly
-      const resp = await fetch(apiUrl, {
-        signal: AbortSignal.timeout(20000),
-        headers: { 'Accept': 'image/*' },
-      });
-      if (!resp.ok) continue;
-      const contentType = resp.headers.get('content-type') || '';
-      if (!contentType.startsWith('image/')) continue;
-      const buf = await resp.arrayBuffer();
-      if (buf.byteLength < 1000) continue; // too small, likely an error
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      return `data:${contentType};base64,${base64}`;
-    } catch (e) {
-      console.error('Screenshot API failed:', e);
-      continue;
     }
+  } catch (e) {
+    console.error('Microlink failed:', e);
   }
+
+  // Fallback: thum.io
+  try {
+    console.log('Trying thum.io...');
+    const apiUrl = `https://image.thum.io/get/width/1280/crop/800/noanimate/${encodeURIComponent(url)}`;
+    const resp = await fetch(apiUrl, {
+      signal: AbortSignal.timeout(25000),
+      headers: { 'Accept': 'image/*' },
+    });
+    if (resp.ok) {
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.startsWith('image/')) {
+        const buf = await resp.arrayBuffer();
+        if (buf.byteLength > 1000) {
+          const bytes = new Uint8Array(buf);
+          let binary = '';
+          for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          const base64 = btoa(binary);
+          return `data:${contentType};base64,${base64}`;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Thum.io failed:', e);
+  }
+
   return null;
 }
 
