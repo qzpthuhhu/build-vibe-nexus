@@ -4,7 +4,6 @@ const corsHeaders = {
 };
 
 function extractMeta(html: string, property: string): string | null {
-  // Try og:property, then name, then property
   const patterns = [
     new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["']`, 'i'),
     new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["']`, 'i'),
@@ -58,6 +57,52 @@ function extractFavicon(html: string, baseUrl: string): string | null {
   return null;
 }
 
+async function fetchScreenshotBase64(url: string): Promise<string | null> {
+  const screenshotApis = [
+    `https://image.thum.io/get/width/1280/crop/800/noanimate/${encodeURIComponent(url)}`,
+    `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`,
+  ];
+
+  for (const apiUrl of screenshotApis) {
+    try {
+      console.log('Trying screenshot API:', apiUrl);
+
+      // For microlink, the response is JSON with the screenshot URL
+      if (apiUrl.includes('microlink.io')) {
+        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(15000) });
+        if (!resp.ok) continue;
+        const json = await resp.json();
+        const imgUrl = json?.data?.screenshot?.url;
+        if (!imgUrl) continue;
+        const imgResp = await fetch(imgUrl, { signal: AbortSignal.timeout(10000) });
+        if (!imgResp.ok) continue;
+        const buf = await imgResp.arrayBuffer();
+        if (buf.byteLength < 1000) continue;
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+        const contentType = imgResp.headers.get('content-type') || 'image/png';
+        return `data:${contentType};base64,${base64}`;
+      }
+
+      // For thum.io, the response is the image directly
+      const resp = await fetch(apiUrl, {
+        signal: AbortSignal.timeout(20000),
+        headers: { 'Accept': 'image/*' },
+      });
+      if (!resp.ok) continue;
+      const contentType = resp.headers.get('content-type') || '';
+      if (!contentType.startsWith('image/')) continue;
+      const buf = await resp.arrayBuffer();
+      if (buf.byteLength < 1000) continue; // too small, likely an error
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      return `data:${contentType};base64,${base64}`;
+    } catch (e) {
+      console.error('Screenshot API failed:', e);
+      continue;
+    }
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -85,6 +130,7 @@ Deno.serve(async (req) => {
         'Accept': 'text/html,application/xhtml+xml',
       },
       redirect: 'follow',
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!resp.ok) {
@@ -100,9 +146,6 @@ Deno.serve(async (req) => {
     const ogImage = extractOgImage(html);
     const favicon = extractFavicon(html, formattedUrl);
 
-    // Generate screenshot URL using free screenshot API
-    const screenshotUrl = `https://image.thum.io/get/width/1280/crop/800/noanimate/${encodeURIComponent(formattedUrl)}`;
-
     // Try to detect platform
     let platform: string | null = null;
     const lowerHtml = html.toLowerCase();
@@ -114,6 +157,11 @@ Deno.serve(async (req) => {
       platform = 'web';
     }
 
+    // Fetch screenshot as base64 (server-side to avoid CORS)
+    console.log('Fetching screenshot...');
+    const screenshotBase64 = await fetchScreenshotBase64(formattedUrl);
+    console.log('Screenshot fetched:', screenshotBase64 ? `${Math.round(screenshotBase64.length / 1024)}KB` : 'null');
+
     const result = {
       success: true,
       data: {
@@ -122,13 +170,13 @@ Deno.serve(async (req) => {
         tags,
         ogImage,
         favicon,
-        screenshotUrl,
+        screenshotBase64,
         platform,
         url: formattedUrl,
       },
     };
 
-    console.log('Parse successful:', { title, tagsCount: tags.length, hasOgImage: !!ogImage });
+    console.log('Parse successful:', { title, tagsCount: tags.length, hasOgImage: !!ogImage, hasScreenshot: !!screenshotBase64 });
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
