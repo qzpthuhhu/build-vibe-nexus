@@ -4,7 +4,6 @@ const corsHeaders = {
 };
 
 function extractMeta(html: string, property: string): string | null {
-  // Try og:property, then name, then property
   const patterns = [
     new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["']`, 'i'),
     new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["']`, 'i'),
@@ -58,6 +57,69 @@ function extractFavicon(html: string, baseUrl: string): string | null {
   return null;
 }
 
+async function fetchScreenshotBase64(url: string): Promise<string | null> {
+  // Try microlink API first (returns JSON with screenshot URL)
+  try {
+    console.log('Trying microlink API...');
+    const mlResp = await fetch(
+      `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false`,
+      { signal: AbortSignal.timeout(20000) }
+    );
+    if (mlResp.ok) {
+      const json = await mlResp.json();
+      const imgUrl = json?.data?.screenshot?.url;
+      if (imgUrl) {
+        console.log('Got microlink screenshot URL:', imgUrl);
+        const imgResp = await fetch(imgUrl, { signal: AbortSignal.timeout(10000) });
+        if (imgResp.ok) {
+          const buf = await imgResp.arrayBuffer();
+          if (buf.byteLength > 1000) {
+            const bytes = new Uint8Array(buf);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            const base64 = btoa(binary);
+            const contentType = imgResp.headers.get('content-type') || 'image/png';
+            return `data:${contentType};base64,${base64}`;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Microlink failed:', e);
+  }
+
+  // Fallback: thum.io
+  try {
+    console.log('Trying thum.io...');
+    const apiUrl = `https://image.thum.io/get/width/1280/crop/800/noanimate/${encodeURIComponent(url)}`;
+    const resp = await fetch(apiUrl, {
+      signal: AbortSignal.timeout(25000),
+      headers: { 'Accept': 'image/*' },
+    });
+    if (resp.ok) {
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.startsWith('image/')) {
+        const buf = await resp.arrayBuffer();
+        if (buf.byteLength > 1000) {
+          const bytes = new Uint8Array(buf);
+          let binary = '';
+          for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          const base64 = btoa(binary);
+          return `data:${contentType};base64,${base64}`;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Thum.io failed:', e);
+  }
+
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -85,6 +147,7 @@ Deno.serve(async (req) => {
         'Accept': 'text/html,application/xhtml+xml',
       },
       redirect: 'follow',
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!resp.ok) {
@@ -100,9 +163,6 @@ Deno.serve(async (req) => {
     const ogImage = extractOgImage(html);
     const favicon = extractFavicon(html, formattedUrl);
 
-    // Generate screenshot URL using free screenshot API
-    const screenshotUrl = `https://image.thum.io/get/width/1280/crop/800/noanimate/${encodeURIComponent(formattedUrl)}`;
-
     // Try to detect platform
     let platform: string | null = null;
     const lowerHtml = html.toLowerCase();
@@ -114,6 +174,11 @@ Deno.serve(async (req) => {
       platform = 'web';
     }
 
+    // Fetch screenshot as base64 (server-side to avoid CORS)
+    console.log('Fetching screenshot...');
+    const screenshotBase64 = await fetchScreenshotBase64(formattedUrl);
+    console.log('Screenshot fetched:', screenshotBase64 ? `${Math.round(screenshotBase64.length / 1024)}KB` : 'null');
+
     const result = {
       success: true,
       data: {
@@ -122,13 +187,13 @@ Deno.serve(async (req) => {
         tags,
         ogImage,
         favicon,
-        screenshotUrl,
+        screenshotBase64,
         platform,
         url: formattedUrl,
       },
     };
 
-    console.log('Parse successful:', { title, tagsCount: tags.length, hasOgImage: !!ogImage });
+    console.log('Parse successful:', { title, tagsCount: tags.length, hasOgImage: !!ogImage, hasScreenshot: !!screenshotBase64 });
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
