@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
@@ -6,15 +6,24 @@ import { useAdmin } from '@/hooks/use-admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import StatusBadge from '@/components/StatusBadge';
 import {
   Shield, Users, BarChart3, CheckCircle, XCircle, Ban,
-  ExternalLink, ChevronDown, ChevronUp
+  ExternalLink, ChevronDown, ChevronUp, Upload, Loader2, Trash2, RotateCcw, Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
-type AdminTab = 'review' | 'users' | 'stats';
+type AdminTab = 'review' | 'users' | 'stats' | 'batch';
+
+interface BatchItem {
+  url: string;
+  status: 'pending' | 'parsing' | 'success' | 'error';
+  error?: string;
+  title?: string;
+  appId?: string;
+}
 
 export default function AdminDashboard() {
   const { user } = useAuth();
