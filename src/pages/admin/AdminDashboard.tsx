@@ -179,7 +179,6 @@ export default function AdminDashboard() {
       setBatchItems(prev => prev.map((it, idx) => idx === index ? { ...it, status: 'error', error: err.message } : it));
     }
   };
-  const [rejectionReason, setRejectionReason] = useState('');
 
   const { data: apps = [] } = useQuery({
     queryKey: ['admin-apps', statusFilter],
