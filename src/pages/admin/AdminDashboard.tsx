@@ -10,7 +10,8 @@ import { Progress } from '@/components/ui/progress';
 import StatusBadge from '@/components/StatusBadge';
 import {
   Shield, Users, BarChart3, CheckCircle, XCircle, Ban,
-  ExternalLink, ChevronDown, ChevronUp, Upload, Loader2, Trash2, RotateCcw, Globe
+  ExternalLink, ChevronDown, ChevronUp, Upload, Loader2, Trash2, RotateCcw, Globe,
+  Search, ChevronLeft, ChevronRight, AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -19,11 +20,14 @@ type AdminTab = 'review' | 'users' | 'stats' | 'batch';
 
 interface BatchItem {
   url: string;
-  status: 'pending' | 'parsing' | 'success' | 'error';
+  status: 'pending' | 'parsing' | 'success' | 'error' | 'duplicate';
   error?: string;
   title?: string;
   appId?: string;
+  duplicateAppId?: string;
 }
+
+const PAGE_SIZE = 20;
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -35,11 +39,25 @@ export default function AdminDashboard() {
   const [reviewNote, setReviewNote] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
 
+  // Search & pagination state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Batch submission state
   const [batchUrls, setBatchUrls] = useState('');
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
   const [batchRunning, setBatchRunning] = useState(false);
   const batchAbortRef = useRef(false);
+
+  // Normalize URL for comparison (strip protocol, trailing slash, www.)
+  const normalizeUrl = useCallback((url: string) => {
+    try {
+      const u = new URL(url);
+      return u.hostname.replace(/^www\./, '') + u.pathname.replace(/\/$/, '') + u.search;
+    } catch {
+      return url.trim().toLowerCase();
+    }
+  }, []);
 
   const parseSingleUrl = useCallback(async (url: string): Promise<{ title: string; description: string; tags: string[]; platform: string | null; screenshotBase64: string | null }> => {
     const { data, error } = await supabase.functions.invoke('parse-url', {
@@ -66,7 +84,24 @@ export default function AdminDashboard() {
     } catch { return null; }
   }, []);
 
-  const handleBatchAdd = () => {
+  // Check for duplicate URLs in existing apps
+  const checkDuplicateUrl = useCallback(async (url: string): Promise<{ isDuplicate: boolean; appId?: string; status?: string }> => {
+    const normalized = normalizeUrl(url);
+    // Fetch all apps to check URL similarity
+    const { data: existingApps } = await supabase
+      .from('apps')
+      .select('id, url, status')
+      .limit(1000);
+    if (!existingApps) return { isDuplicate: false };
+    
+    const match = existingApps.find((app: any) => normalizeUrl(app.url) === normalized);
+    if (match) {
+      return { isDuplicate: true, appId: match.id, status: match.status };
+    }
+    return { isDuplicate: false };
+  }, [normalizeUrl]);
+
+  const handleBatchAdd = async () => {
     const urls = batchUrls
       .split('\n')
       .map(u => u.trim())
@@ -77,9 +112,28 @@ export default function AdminDashboard() {
       return url;
     });
     const unique = [...new Set(formatted)];
-    const newItems: BatchItem[] = unique.map(url => ({ url, status: 'pending' }));
-    setBatchItems(prev => [...prev, ...newItems.filter(n => !prev.some(p => p.url === n.url))]);
+    
+    // Check for duplicates against existing apps
+    const newItems: BatchItem[] = [];
+    for (const url of unique) {
+      if (batchItems.some(p => p.url === url)) continue;
+      const dup = await checkDuplicateUrl(url);
+      if (dup.isDuplicate && dup.status === 'approved') {
+        newItems.push({ url, status: 'duplicate', error: '该链接已存在已通过的应用', duplicateAppId: dup.appId });
+      } else if (dup.isDuplicate) {
+        newItems.push({ url, status: 'pending', error: `疑似重复（状态：${dup.status}）`, duplicateAppId: dup.appId });
+      } else {
+        newItems.push({ url, status: 'pending' });
+      }
+    }
+    
+    setBatchItems(prev => [...prev, ...newItems]);
     setBatchUrls('');
+    
+    const dupCount = newItems.filter(i => i.status === 'duplicate').length;
+    const suspectCount = newItems.filter(i => i.duplicateAppId && i.status === 'pending').length;
+    if (dupCount > 0) toast.warning(`${dupCount} 个链接已存在已通过应用，已标记为重复`);
+    if (suspectCount > 0) toast.info(`${suspectCount} 个链接疑似重复，请注意`);
   };
 
   const handleBatchStart = async () => {
@@ -90,7 +144,7 @@ export default function AdminDashboard() {
     for (let i = 0; i < batchItems.length; i++) {
       if (batchAbortRef.current) break;
       const item = batchItems[i];
-      if (item.status === 'success') continue;
+      if (item.status === 'success' || item.status === 'duplicate') continue;
 
       setBatchItems(prev => prev.map((it, idx) => idx === i ? { ...it, status: 'parsing', error: undefined } : it));
 
@@ -120,7 +174,6 @@ export default function AdminDashboard() {
         const { data: appResult, error: insertError } = await supabase.from('apps').insert(appData as any).select('id').single();
         if (insertError) throw insertError;
 
-        // Save cover as media
         if (coverUrl && appResult) {
           await supabase.from('app_media').insert({
             app_id: appResult.id,
@@ -146,7 +199,6 @@ export default function AdminDashboard() {
     const items = [...batchItems];
     items[index] = { ...items[index], status: 'pending', error: undefined };
     setBatchItems(items);
-    // Re-run just this one
     if (!user) return;
     setBatchItems(prev => prev.map((it, idx) => idx === index ? { ...it, status: 'parsing' } : it));
     try {
@@ -180,23 +232,45 @@ export default function AdminDashboard() {
     }
   };
 
-  const { data: apps = [] } = useQuery({
-    queryKey: ['admin-apps', statusFilter],
+  // Reset page when filter/search changes
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const { data: appsResult = { apps: [], totalCount: 0 } } = useQuery({
+    queryKey: ['admin-apps', statusFilter, searchQuery, currentPage],
     queryFn: async () => {
-      let query = supabase.from('apps').select('*') as any;
+      const from = (currentPage - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      let query = supabase.from('apps').select('*', { count: 'exact' }) as any;
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
-      const { data: appsData } = await query.order('created_at', { ascending: false }).limit(50);
-      if (!appsData || appsData.length === 0) return [];
-      // Fetch profile display names for all user_ids
+      if (searchQuery.trim()) {
+        query = query.or(`title.ilike.%${searchQuery.trim()}%,url.ilike.%${searchQuery.trim()}%`);
+      }
+      const { data: appsData, count } = await query.order('created_at', { ascending: false }).range(from, to);
+      if (!appsData || appsData.length === 0) return { apps: [], totalCount: count || 0 };
+      
       const userIds = [...new Set(appsData.map((a: any) => a.user_id))] as string[];
       const { data: profiles } = await supabase.from('profiles').select('user_id, display_name').in('user_id', userIds);
       const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p.display_name]));
-      return appsData.map((a: any) => ({ ...a, profile_display_name: profileMap[a.user_id] || null }));
+      return {
+        apps: appsData.map((a: any) => ({ ...a, profile_display_name: profileMap[a.user_id] || null })),
+        totalCount: count || 0,
+      };
     },
     enabled: isAdmin,
   });
+
+  const apps = appsResult.apps;
+  const totalPages = Math.max(1, Math.ceil(appsResult.totalCount / PAGE_SIZE));
 
   const { data: userList = [] } = useQuery({
     queryKey: ['admin-users'],
@@ -247,7 +321,6 @@ export default function AdminDashboard() {
       }
       const { error } = await supabase.from('apps').update(update).eq('id', appId);
       if (error) throw error;
-      // Log review action
       await supabase.from('app_review_logs').insert({
         app_id: appId,
         action,
@@ -332,11 +405,22 @@ export default function AdminDashboard() {
       {/* Review Tab */}
       {tab === 'review' && (
         <div className="space-y-4 animate-fade-up stagger-2">
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="搜索应用名称或网址..."
+              className="pl-9 bg-secondary/50 border-border/50"
+            />
+          </div>
+
           <div className="flex flex-wrap gap-1.5">
             {STATUS_FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={() => setStatusFilter(f.value)}
+                onClick={() => handleStatusFilterChange(f.value)}
                 className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
                   statusFilter === f.value ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground hover:text-foreground'
                 }`}
@@ -344,6 +428,9 @@ export default function AdminDashboard() {
                 {f.label}
               </button>
             ))}
+            <span className="ml-auto text-xs text-muted-foreground self-center">
+              共 {appsResult.totalCount} 条
+            </span>
           </div>
 
           {apps.length === 0 ? (
@@ -365,6 +452,7 @@ export default function AdminDashboard() {
                         <span>阶段：{app.monetization_stage || '未设置'}</span>
                         <span>{new Date(app.created_at).toLocaleDateString('zh-CN')}</span>
                       </div>
+                      <div className="text-[11px] text-muted-foreground/70 truncate mt-0.5">{app.url}</div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <Link to={`/app/${app.id}`}>
@@ -440,6 +528,57 @@ export default function AdminDashboard() {
               ))}
             </div>
           )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage(p => p - 1)}
+                className="gap-1"
+              >
+                <ChevronLeft className="h-4 w-4" /> 上一页
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  let page: number;
+                  if (totalPages <= 7) {
+                    page = i + 1;
+                  } else if (currentPage <= 4) {
+                    page = i + 1;
+                  } else if (currentPage >= totalPages - 3) {
+                    page = totalPages - 6 + i;
+                  } else {
+                    page = currentPage - 3 + i;
+                  }
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-8 w-8 rounded-md text-xs font-medium transition-all ${
+                        currentPage === page
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(p => p + 1)}
+                className="gap-1"
+              >
+                下一页 <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -449,7 +588,7 @@ export default function AdminDashboard() {
           <div className="glass-card p-6 space-y-4">
             <div>
               <h3 className="text-sm font-semibold mb-1">批量提交网址</h3>
-              <p className="text-xs text-muted-foreground">每行一个网址，系统将逐个解析并自动创建应用（状态为已通过）</p>
+              <p className="text-xs text-muted-foreground">每行一个网址，系统将逐个解析并自动创建应用（状态为已通过）。已通过的重复链接将被自动拦截。</p>
             </div>
             <Textarea
               value={batchUrls}
@@ -463,7 +602,7 @@ export default function AdminDashboard() {
                 <Globe className="h-4 w-4" />
                 添加到队列
               </Button>
-              <Button onClick={handleBatchStart} disabled={batchItems.filter(i => i.status !== 'success').length === 0 || batchRunning} className="gap-1.5">
+              <Button onClick={handleBatchStart} disabled={batchItems.filter(i => i.status !== 'success' && i.status !== 'duplicate').length === 0 || batchRunning} className="gap-1.5">
                 {batchRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                 {batchRunning ? '解析中...' : '开始批量解析'}
               </Button>
@@ -487,23 +626,26 @@ export default function AdminDashboard() {
                 <span>
                   ✅ {batchItems.filter(i => i.status === 'success').length}
                   {' '}❌ {batchItems.filter(i => i.status === 'error').length}
+                  {' '}🔁 {batchItems.filter(i => i.status === 'duplicate').length}
                   {' '}⏳ {batchItems.filter(i => i.status === 'pending' || i.status === 'parsing').length}
                 </span>
               </div>
-              <Progress value={batchItems.filter(i => i.status === 'success').length / batchItems.length * 100} className="h-2" />
+              <Progress value={batchItems.filter(i => i.status === 'success' || i.status === 'duplicate').length / batchItems.length * 100} className="h-2" />
               <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
                 {batchItems.map((item, idx) => (
-                  <div key={idx} className="glass-card px-4 py-2.5 flex items-center gap-3">
+                  <div key={idx} className={`glass-card px-4 py-2.5 flex items-center gap-3 ${item.status === 'duplicate' ? 'border border-amber-500/30' : ''}`}>
                     <div className="shrink-0">
-                      {item.status === 'pending' && <div className="h-4 w-4 rounded-full bg-muted" />}
+                      {item.status === 'pending' && !item.duplicateAppId && <div className="h-4 w-4 rounded-full bg-muted" />}
+                      {item.status === 'pending' && item.duplicateAppId && <AlertTriangle className="h-4 w-4 text-amber-400" />}
                       {item.status === 'parsing' && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
                       {item.status === 'success' && <CheckCircle className="h-4 w-4 text-primary" />}
                       {item.status === 'error' && <XCircle className="h-4 w-4 text-destructive" />}
+                      {item.status === 'duplicate' && <AlertTriangle className="h-4 w-4 text-amber-400" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-mono truncate">{item.url}</div>
                       {item.title && <div className="text-xs text-muted-foreground truncate">{item.title}</div>}
-                      {item.error && <div className="text-xs text-destructive truncate">{item.error}</div>}
+                      {item.error && <div className={`text-xs truncate ${item.status === 'duplicate' ? 'text-amber-400' : item.duplicateAppId ? 'text-amber-400' : 'text-destructive'}`}>{item.error}</div>}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       {item.status === 'error' && !batchRunning && (
@@ -511,8 +653,8 @@ export default function AdminDashboard() {
                           <RotateCcw className="h-3.5 w-3.5" />
                         </Button>
                       )}
-                      {item.appId && (
-                        <Link to={`/app/${item.appId}`}>
+                      {(item.appId || item.duplicateAppId) && (
+                        <Link to={`/app/${item.appId || item.duplicateAppId}`}>
                           <Button variant="ghost" size="icon" className="h-7 w-7">
                             <ExternalLink className="h-3.5 w-3.5" />
                           </Button>
