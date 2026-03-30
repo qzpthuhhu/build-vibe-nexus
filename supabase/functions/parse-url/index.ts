@@ -140,19 +140,54 @@ Deno.serve(async (req) => {
 
     console.log('Parsing URL:', formattedUrl);
 
-    // Fetch HTML
-    const resp = await fetch(formattedUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; VibeDir/1.0; +https://vibedir.com)',
-        'Accept': 'text/html,application/xhtml+xml',
-      },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(10000),
-    });
+    // Fetch HTML - try with browser-like UA first, fallback to bot UA
+    let html = '';
+    let fetchSuccess = false;
+    for (const ua of [
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (compatible; VibeDir/1.0; +https://vibedir.com)',
+    ]) {
+      try {
+        const resp = await fetch(formattedUrl, {
+          headers: {
+            'User-Agent': ua,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8',
+          },
+          redirect: 'follow',
+          signal: AbortSignal.timeout(15000),
+        });
+        html = await resp.text();
+        // Consider it successful if we got any HTML content, even on non-200
+        if (html.length > 100) {
+          fetchSuccess = true;
+          console.log(`Fetched with status ${resp.status}, HTML length: ${html.length}`);
+          break;
+        }
+      } catch (e) {
+        console.warn(`Fetch attempt failed with UA "${ua.slice(0, 30)}...":`, e);
+      }
+    }
 
-    if (!resp.ok) {
-      return new Response(JSON.stringify({ success: false, error: `Failed to fetch: ${resp.status}` }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!fetchSuccess || html.length < 100) {
+      // Still try to return partial data with screenshot
+      console.log('HTML fetch failed, attempting screenshot-only mode');
+      const screenshotBase64 = await fetchScreenshotBase64(formattedUrl);
+      const hostname = new URL(formattedUrl).hostname;
+      return new Response(JSON.stringify({
+        success: true,
+        data: {
+          title: hostname,
+          description: '',
+          tags: [],
+          ogImage: null,
+          favicon: null,
+          screenshotBase64,
+          platform: 'web',
+          url: formattedUrl,
+        },
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
