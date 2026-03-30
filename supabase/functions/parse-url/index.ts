@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const html = await resp.text();
+    // html is already populated from the fetch loop above
     const title = extractTitle(html);
     const description = extractDescription(html);
     const tags = extractTags(html);
