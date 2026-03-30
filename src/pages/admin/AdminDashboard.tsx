@@ -35,6 +35,152 @@ export default function AdminDashboard() {
   const [reviewNote, setReviewNote] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
 
+  // Batch submission state
+  const [batchUrls, setBatchUrls] = useState('');
+  const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
+  const [batchRunning, setBatchRunning] = useState(false);
+  const batchAbortRef = useRef(false);
+
+  const parseSingleUrl = useCallback(async (url: string): Promise<{ title: string; description: string; tags: string[]; platform: string | null; screenshotBase64: string | null }> => {
+    const { data, error } = await supabase.functions.invoke('parse-url', {
+      body: { url: url.trim() },
+    });
+    if (error || !data?.success) throw new Error(data?.error || 'Parse failed');
+    return data.data;
+  }, []);
+
+  const uploadScreenshot = useCallback(async (base64Data: string, userId: string): Promise<string | null> => {
+    try {
+      const mimeMatch = base64Data.match(/^data:(image\/\w+);base64,/);
+      const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+      const ext = mime === 'image/jpeg' ? 'jpg' : 'png';
+      const raw = atob(base64Data.replace(/^data:image\/\w+;base64,/, ''));
+      const arr = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+      const blob = new Blob([arr], { type: mime });
+      const fileName = `${userId}/${Date.now()}-screenshot.${ext}`;
+      const { error } = await supabase.storage.from('app-media').upload(fileName, blob, { contentType: mime, upsert: true });
+      if (error) return null;
+      const { data: urlData } = supabase.storage.from('app-media').getPublicUrl(fileName);
+      return urlData.publicUrl;
+    } catch { return null; }
+  }, []);
+
+  const handleBatchAdd = () => {
+    const urls = batchUrls
+      .split('\n')
+      .map(u => u.trim())
+      .filter(u => u && (u.startsWith('http://') || u.startsWith('https://') || !u.startsWith('#')));
+    const formatted = urls.map(u => {
+      let url = u;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) url = `https://${url}`;
+      return url;
+    });
+    const unique = [...new Set(formatted)];
+    const newItems: BatchItem[] = unique.map(url => ({ url, status: 'pending' }));
+    setBatchItems(prev => [...prev, ...newItems.filter(n => !prev.some(p => p.url === n.url))]);
+    setBatchUrls('');
+  };
+
+  const handleBatchStart = async () => {
+    if (!user) return;
+    setBatchRunning(true);
+    batchAbortRef.current = false;
+
+    for (let i = 0; i < batchItems.length; i++) {
+      if (batchAbortRef.current) break;
+      const item = batchItems[i];
+      if (item.status === 'success') continue;
+
+      setBatchItems(prev => prev.map((it, idx) => idx === i ? { ...it, status: 'parsing', error: undefined } : it));
+
+      try {
+        const parsed = await parseSingleUrl(item.url);
+        let coverUrl: string | null = null;
+        if (parsed.screenshotBase64) {
+          coverUrl = await uploadScreenshot(parsed.screenshotBase64, user.id);
+        }
+
+        const appData = {
+          user_id: user.id,
+          url: item.url,
+          title: parsed.title || new URL(item.url).hostname,
+          description: parsed.description || '',
+          cover_image: coverUrl,
+          tags: parsed.tags?.slice(0, 10) || [],
+          tech_stack: [],
+          platform_type: parsed.platform || null,
+          access_type: null,
+          monetization_stage: null,
+          status: 'approved' as const,
+          approved_at: new Date().toISOString(),
+          submitted_at: new Date().toISOString(),
+        };
+
+        const { data: appResult, error: insertError } = await supabase.from('apps').insert(appData as any).select('id').single();
+        if (insertError) throw insertError;
+
+        // Save cover as media
+        if (coverUrl && appResult) {
+          await supabase.from('app_media').insert({
+            app_id: appResult.id,
+            media_type: 'cover',
+            file_url: coverUrl,
+            file_name: 'screenshot.png',
+            sort_order: 0,
+          } as any);
+        }
+
+        setBatchItems(prev => prev.map((it, idx) => idx === i ? { ...it, status: 'success', title: appData.title, appId: appResult?.id } : it));
+      } catch (err: any) {
+        setBatchItems(prev => prev.map((it, idx) => idx === i ? { ...it, status: 'error', error: err.message || '解析失败' } : it));
+      }
+    }
+
+    setBatchRunning(false);
+    queryClient.invalidateQueries({ queryKey: ['admin-apps'] });
+    toast.success('批量提交完成');
+  };
+
+  const handleBatchRetry = async (index: number) => {
+    const items = [...batchItems];
+    items[index] = { ...items[index], status: 'pending', error: undefined };
+    setBatchItems(items);
+    // Re-run just this one
+    if (!user) return;
+    setBatchItems(prev => prev.map((it, idx) => idx === index ? { ...it, status: 'parsing' } : it));
+    try {
+      const parsed = await parseSingleUrl(items[index].url);
+      let coverUrl: string | null = null;
+      if (parsed.screenshotBase64) {
+        coverUrl = await uploadScreenshot(parsed.screenshotBase64, user.id);
+      }
+      const appData = {
+        user_id: user.id,
+        url: items[index].url,
+        title: parsed.title || new URL(items[index].url).hostname,
+        description: parsed.description || '',
+        cover_image: coverUrl,
+        tags: parsed.tags?.slice(0, 10) || [],
+        tech_stack: [],
+        platform_type: parsed.platform || null,
+        status: 'approved' as const,
+        approved_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
+      };
+      const { data: appResult, error: insertError } = await supabase.from('apps').insert(appData as any).select('id').single();
+      if (insertError) throw insertError;
+      if (coverUrl && appResult) {
+        await supabase.from('app_media').insert({ app_id: appResult.id, media_type: 'cover', file_url: coverUrl, file_name: 'screenshot.png', sort_order: 0 } as any);
+      }
+      setBatchItems(prev => prev.map((it, idx) => idx === index ? { ...it, status: 'success', title: appData.title, appId: appResult?.id } : it));
+      queryClient.invalidateQueries({ queryKey: ['admin-apps'] });
+    } catch (err: any) {
+      setBatchItems(prev => prev.map((it, idx) => idx === index ? { ...it, status: 'error', error: err.message } : it));
+    }
+  };
+  const [rejectionReason, setRejectionReason] = useState('');
+
   const { data: apps = [] } = useQuery({
     queryKey: ['admin-apps', statusFilter],
     queryFn: async () => {
