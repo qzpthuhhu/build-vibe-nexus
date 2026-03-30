@@ -312,6 +312,7 @@ export default function AdminDashboard() {
       <div className="flex items-center gap-1 animate-fade-up stagger-1">
         {([
           { key: 'review' as AdminTab, label: '应用审核', icon: CheckCircle },
+          { key: 'batch' as AdminTab, label: '批量提交', icon: Upload },
           { key: 'users' as AdminTab, label: '用户管理', icon: Users },
           { key: 'stats' as AdminTab, label: '内容统计', icon: BarChart3 },
         ]).map(({ key, label, icon: Icon }) => (
