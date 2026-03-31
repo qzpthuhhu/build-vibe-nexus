@@ -63,7 +63,10 @@ export default function Index() {
           <p className="mx-auto max-w-xl text-base md:text-lg text-foreground/80 font-medium animate-fade-up stagger-2">
             {t('hero.subtitle')}
           </p>
-          <div className="mx-auto max-w-md relative animate-fade-up stagger-3">
+          <p className="mx-auto max-w-xl text-xs md:text-sm text-muted-foreground animate-fade-up stagger-3">
+            {t('hero.platform_tagline')}
+          </p>
+          <div className="mx-auto max-w-md relative animate-fade-up stagger-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t('hero.search_placeholder')}
