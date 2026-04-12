@@ -94,6 +94,7 @@ export type Database = {
           app_store_url: string | null
           approved_at: string | null
           boost_expires_at: string | null
+          category: string
           contact_info: string | null
           cover_image: string | null
           created_at: string
@@ -128,6 +129,7 @@ export type Database = {
           app_store_url?: string | null
           approved_at?: string | null
           boost_expires_at?: string | null
+          category?: string
           contact_info?: string | null
           cover_image?: string | null
           created_at?: string
@@ -162,6 +164,7 @@ export type Database = {
           app_store_url?: string | null
           approved_at?: string | null
           boost_expires_at?: string | null
+          category?: string
           contact_info?: string | null
           cover_image?: string | null
           created_at?: string
