@@ -1,0 +1,1 @@
+ALTER TABLE public.apps ADD COLUMN category text NOT NULL DEFAULT 'other';

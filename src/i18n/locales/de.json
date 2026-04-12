@@ -173,7 +173,9 @@
     "reparse": "Erneut analysieren",
     "retry": "Wiederholen",
     "fill_url_first": "Bitte zuerst eine URL eingeben",
-    "pending_tbd": "⏳ Ausstehend"
+    "pending_tbd": "⏳ Ausstehend",
+    "category": "Kategorie",
+    "category_placeholder": "Kategorie wählen"
   },
   "not_found": {
     "title": "404",
@@ -220,5 +222,17 @@
     "desktop": "Desktop",
     "multi": "Multi-Plattform",
     "other": "Sonstige"
+  },
+  "categories": {
+    "all": "Alle",
+    "tools": "🛠️ Tools",
+    "ai": "🤖 KI",
+    "content": "✍️ Inhalt",
+    "business": "💼 Business",
+    "education": "📚 Bildung",
+    "lifestyle": "🎮 Lifestyle",
+    "developer": "👨‍💻 Entwickler",
+    "data": "📊 Daten",
+    "other": "📦 Sonstige"
   }
 }

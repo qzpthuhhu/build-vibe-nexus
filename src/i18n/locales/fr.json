@@ -173,7 +173,9 @@
     "reparse": "Ré-analyser",
     "retry": "Réessayer",
     "fill_url_first": "Veuillez d'abord entrer une URL",
-    "pending_tbd": "⏳ En attente"
+    "pending_tbd": "⏳ En attente",
+    "category": "Catégorie",
+    "category_placeholder": "Sélectionner une catégorie"
   },
   "not_found": {
     "title": "404",
@@ -220,5 +222,17 @@
     "desktop": "Bureau",
     "multi": "Multi-plateforme",
     "other": "Autre"
+  },
+  "categories": {
+    "all": "Tous",
+    "tools": "🛠️ Outils",
+    "ai": "🤖 IA",
+    "content": "✍️ Contenu",
+    "business": "💼 Business",
+    "education": "📚 Éducation",
+    "lifestyle": "🎮 Lifestyle",
+    "developer": "👨‍💻 Développeur",
+    "data": "📊 Données",
+    "other": "📦 Autre"
   }
 }

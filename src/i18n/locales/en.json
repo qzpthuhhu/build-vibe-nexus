@@ -173,7 +173,9 @@
     "reparse": "Re-parse",
     "retry": "Retry",
     "fill_url_first": "Please enter a URL first",
-    "pending_tbd": "⏳ Pending"
+    "pending_tbd": "⏳ Pending",
+    "category": "Category",
+    "category_placeholder": "Select a category"
   },
   "not_found": {
     "title": "404",
@@ -220,5 +222,17 @@
     "desktop": "Desktop",
     "multi": "Multi-platform",
     "other": "Other"
+  },
+  "categories": {
+    "all": "All",
+    "tools": "🛠️ Tools",
+    "ai": "🤖 AI",
+    "content": "✍️ Content",
+    "business": "💼 Business",
+    "education": "📚 Education",
+    "lifestyle": "🎮 Lifestyle",
+    "developer": "👨‍💻 Developer",
+    "data": "📊 Data",
+    "other": "📦 Other"
   }
 }

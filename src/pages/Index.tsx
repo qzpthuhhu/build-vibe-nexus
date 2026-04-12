@@ -5,12 +5,14 @@ import { supabase } from '@/integrations/supabase/client';
 import AppCard from '@/components/AppCard';
 import { Flame, Clock, ShoppingBag, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { CATEGORIES } from '@/lib/categories';
 
 type Tab = 'hot' | 'new' | 'for_sale';
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState<Tab>('hot');
   const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { t } = useTranslation();
 
   const tabs: { key: Tab; label: string; icon: typeof Flame }[] = [
@@ -20,12 +22,16 @@ export default function Index() {
   ];
 
   const { data: apps = [], isLoading } = useQuery({
-    queryKey: ['apps', activeTab, search],
+    queryKey: ['apps', activeTab, search, selectedCategory],
     queryFn: async () => {
       let query = supabase
         .from('apps')
         .select('*')
         .eq('status', 'approved');
+
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory);
+      }
 
       if (search) {
         query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
@@ -80,7 +86,7 @@ export default function Index() {
 
       {/* Tabs & Feed */}
       <section className="container py-8">
-        <div className="flex items-center gap-1 mb-8">
+        <div className="flex items-center gap-1 mb-4">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -98,6 +104,33 @@ export default function Index() {
               </button>
             );
           })}
+        </div>
+
+        {/* Category Filter */}
+        <div className="flex items-center gap-1.5 mb-8 overflow-x-auto pb-1 scrollbar-hide">
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+              selectedCategory === 'all'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t('categories.all')}
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                selectedCategory === cat
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t(`categories.${cat}`)}
+            </button>
+          ))}
         </div>
 
         {isLoading ? (
