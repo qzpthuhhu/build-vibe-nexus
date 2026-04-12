@@ -173,7 +173,9 @@
     "reparse": "다시 분석",
     "retry": "재시도",
     "fill_url_first": "먼저 URL을 입력해주세요",
-    "pending_tbd": "⏳ 미정"
+    "pending_tbd": "⏳ 미정",
+    "category": "카테고리",
+    "category_placeholder": "카테고리 선택"
   },
   "not_found": {
     "title": "404",
@@ -220,5 +222,17 @@
     "desktop": "데스크톱",
     "multi": "멀티플랫폼",
     "other": "기타"
+  },
+  "categories": {
+    "all": "전체",
+    "tools": "🛠️ 도구",
+    "ai": "🤖 AI",
+    "content": "✍️ 콘텐츠",
+    "business": "💼 비즈니스",
+    "education": "📚 교육",
+    "lifestyle": "🎮 라이프스타일",
+    "developer": "👨‍💻 개발자",
+    "data": "📊 데이터",
+    "other": "📦 기타"
   }
 }

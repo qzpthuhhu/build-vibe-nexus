@@ -173,7 +173,9 @@
     "reparse": "重新解析",
     "retry": "重试",
     "fill_url_first": "请先输入应用链接",
-    "pending_tbd": "⏳ 待定"
+    "pending_tbd": "⏳ 待定",
+    "category": "应用分类",
+    "category_placeholder": "选择分类"
   },
   "not_found": {
     "title": "404",
@@ -220,5 +222,17 @@
     "desktop": "桌面端",
     "multi": "多平台",
     "other": "其他"
+  },
+  "categories": {
+    "all": "全部",
+    "tools": "🛠️ 工具效率",
+    "ai": "🤖 AI 智能",
+    "content": "✍️ 内容创作",
+    "business": "💼 商业营销",
+    "education": "📚 教育学习",
+    "lifestyle": "🎮 生活娱乐",
+    "developer": "👨‍💻 开发者",
+    "data": "📊 数据分析",
+    "other": "📦 其他"
   }
 }

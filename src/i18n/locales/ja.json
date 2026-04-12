@@ -173,7 +173,9 @@
     "reparse": "再解析",
     "retry": "再試行",
     "fill_url_first": "先にURLを入力してください",
-    "pending_tbd": "⏳ 未定"
+    "pending_tbd": "⏳ 未定",
+    "category": "カテゴリー",
+    "category_placeholder": "カテゴリーを選択"
   },
   "not_found": {
     "title": "404",
@@ -220,5 +222,17 @@
     "desktop": "デスクトップ",
     "multi": "マルチプラットフォーム",
     "other": "その他"
+  },
+  "categories": {
+    "all": "すべて",
+    "tools": "🛠️ ツール",
+    "ai": "🤖 AI",
+    "content": "✍️ コンテンツ",
+    "business": "💼 ビジネス",
+    "education": "📚 教育",
+    "lifestyle": "🎮 ライフスタイル",
+    "developer": "👨‍💻 開発者",
+    "data": "📊 データ",
+    "other": "📦 その他"
   }
 }
