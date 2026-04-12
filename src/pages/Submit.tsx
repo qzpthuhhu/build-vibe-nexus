@@ -552,6 +552,21 @@ export default function Submit() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label>{t('submit_page.category')} *</Label>
+            <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+              <SelectTrigger className="bg-secondary/50 border-border/50">
+                <SelectValue placeholder={t('submit_page.category_placeholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {t(`categories.${cat}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Platform & Access */}

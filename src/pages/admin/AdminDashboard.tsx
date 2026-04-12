@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { inferCategory } from '@/lib/categories';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
@@ -155,6 +156,7 @@ export default function AdminDashboard() {
           coverUrl = await uploadScreenshot(parsed.screenshotBase64, user.id);
         }
 
+        const inferredCategory = inferCategory(parsed.title || '', parsed.description || '', parsed.tags || []);
         const appData = {
           user_id: user.id,
           url: item.url,
@@ -166,6 +168,7 @@ export default function AdminDashboard() {
           platform_type: parsed.platform || null,
           access_type: null,
           monetization_stage: null,
+          category: inferredCategory,
           status: 'approved' as const,
           approved_at: new Date().toISOString(),
           submitted_at: new Date().toISOString(),
@@ -207,6 +210,7 @@ export default function AdminDashboard() {
       if (parsed.screenshotBase64) {
         coverUrl = await uploadScreenshot(parsed.screenshotBase64, user.id);
       }
+      const inferredCategory = inferCategory(parsed.title || '', parsed.description || '', parsed.tags || []);
       const appData = {
         user_id: user.id,
         url: items[index].url,
@@ -216,6 +220,7 @@ export default function AdminDashboard() {
         tags: parsed.tags?.slice(0, 10) || [],
         tech_stack: [],
         platform_type: parsed.platform || null,
+        category: inferredCategory,
         status: 'approved' as const,
         approved_at: new Date().toISOString(),
         submitted_at: new Date().toISOString(),
@@ -449,6 +454,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                         <span>提交者：{app.profile_display_name || '未知'}</span>
                         {app.platform_type && <span>平台：{app.platform_type}</span>}
+                        {app.category && app.category !== 'other' && <span>分类：{app.category}</span>}
                         <span>阶段：{app.monetization_stage || '未设置'}</span>
                         <span>{new Date(app.created_at).toLocaleDateString('zh-CN')}</span>
                       </div>
