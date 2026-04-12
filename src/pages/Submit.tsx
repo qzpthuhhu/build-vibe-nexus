@@ -22,6 +22,7 @@ import {
 import MediaUploader from '@/components/MediaUploader';
 import { toast } from 'sonner';
 import { ArrowLeft, Send, Sparkles, Save, Loader2, Globe, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
+import { CATEGORIES, inferCategory } from '@/lib/categories';
 
 const TECH_OPTIONS = ['Lovable', 'Cursor', 'Dify', 'LangChain', 'OpenAI', 'Claude', 'V0', 'Bolt', 'Replit', '其他'];
 
@@ -65,6 +66,7 @@ export default function Submit() {
     mini_program_qr_url: '',
     app_store_url: '',
     android_download_url: '',
+    category: '',
   });
 
   const [coverFiles, setCoverFiles] = useState<MediaFile[]>([]);
@@ -152,6 +154,7 @@ export default function Submit() {
         mini_program_qr_url: a.mini_program_qr_url || '',
         app_store_url: a.app_store_url || '',
         android_download_url: a.android_download_url || '',
+        category: a.category || '',
       });
     }
   }, [existingApp]);
@@ -203,6 +206,7 @@ export default function Submit() {
       setParseProgress(80);
 
       // Fill form with parsed data
+      const inferredCategory = inferCategory(parsed.title || '', parsed.description || '', parsed.tags || []);
       setForm(prev => ({
         ...prev,
         title: parsed.title || prev.title,
@@ -211,6 +215,7 @@ export default function Submit() {
         platform_type: parsed.platform || 'pending_tbd',
         access_type: prev.access_type || 'pending_tbd',
         monetization_stage: prev.monetization_stage || 'pending_tbd',
+        category: prev.category || inferredCategory,
       }));
 
       // Upload screenshot base64 to storage if available
@@ -328,6 +333,7 @@ export default function Submit() {
         mini_program_qr_url: qrUrl,
         app_store_url: form.app_store_url || null,
         android_download_url: form.android_download_url || null,
+        category: form.category || 'other',
       } as any;
 
       if (isEdit) {
