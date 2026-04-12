@@ -173,7 +173,9 @@
     "reparse": "Re-parse",
     "retry": "Retry",
     "fill_url_first": "Please enter a URL first",
-    "pending_tbd": "⏳ Pending"
+    "pending_tbd": "⏳ Pending",
+    "category": "Category",
+    "category_placeholder": "Select a category"
   },
   "not_found": {
     "title": "404",
@@ -232,9 +234,5 @@
     "developer": "👨‍💻 Developer",
     "data": "📊 Data",
     "other": "📦 Other"
-  },
-  "submit_page_extra": {
-    "category": "Category",
-    "category_placeholder": "Select a category"
   }
 }
