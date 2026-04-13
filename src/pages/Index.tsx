@@ -6,6 +6,7 @@ import AppCard from '@/components/AppCard';
 import { Flame, Clock, ShoppingBag, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { CATEGORIES } from '@/lib/categories';
+import CommunitySection from '@/components/CommunitySection';
 
 type Tab = 'hot' | 'new' | 'for_sale';
 
@@ -159,6 +160,9 @@ export default function Index() {
           </div>
         )}
       </section>
+
+      {/* Community CTA */}
+      <CommunitySection />
     </div>
   );
 }
