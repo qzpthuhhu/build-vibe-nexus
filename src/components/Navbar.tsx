@@ -34,6 +34,11 @@ export default function Navbar() {
               {t('nav.ranking')}
             </Button>
           </Link>
+          <Link to="/contact">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              {t('nav.contact')}
+            </Button>
+          </Link>
 
           <LanguageSwitcher />
 

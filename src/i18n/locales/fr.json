@@ -1,6 +1,7 @@
 {
   "nav": {
-    "ranking": "Classement",
+"ranking": "Classement",
+    "contact": "Contact",
     "submit": "Publier une app",
     "login": "Connexion",
     "profile": "Mon profil",

@@ -1,6 +1,7 @@
 {
   "nav": {
-    "ranking": "ランキング",
+"ranking": "ランキング",
+    "contact": "お問い合わせ",
     "submit": "アプリを公開",
     "login": "ログイン",
     "profile": "マイページ",
