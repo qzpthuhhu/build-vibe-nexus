@@ -367,6 +367,52 @@ export default function AdminDashboard() {
     },
   });
 
+  // Bulk actions
+  const toggleSelect = (id: string) => {
+    setSelectedApps(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (selectedApps.size === apps.length) {
+      setSelectedApps(new Set());
+    } else {
+      setSelectedApps(new Set(apps.map((a: any) => a.id)));
+    }
+  };
+
+  const handleBulkAction = async (action: 'approve' | 'reject' | 'offline' | 'delete') => {
+    if (selectedApps.size === 0) return;
+    const ids = Array.from(selectedApps);
+    const label = { approve: '通过', reject: '打回', offline: '下线', delete: '删除' }[action];
+    if (!confirm(`确定要批量${label} ${ids.length} 个应用吗？`)) return;
+
+    setBulkRunning(true);
+    let successCount = 0;
+    for (const appId of ids) {
+      try {
+        if (action === 'delete') {
+          await supabase.from('app_review_logs').insert({ app_id: appId, action: 'delete', operator_id: user!.id, note: '批量删除' } as any);
+          await supabase.from('apps').delete().eq('id', appId);
+        } else {
+          const update: any = {};
+          if (action === 'approve') { update.status = 'approved'; update.approved_at = new Date().toISOString(); }
+          else if (action === 'reject') { update.status = 'rejected'; update.rejection_reason = '批量打回'; }
+          else if (action === 'offline') { update.status = 'offline'; }
+          await supabase.from('apps').update(update).eq('id', appId);
+          await supabase.from('app_review_logs').insert({ app_id: appId, action, operator_id: user!.id, note: `批量${label}` } as any);
+        }
+        successCount++;
+      } catch {}
+    }
+    setBulkRunning(false);
+    setSelectedApps(new Set());
+    queryClient.invalidateQueries({ queryKey: ['admin-apps'] });
+    toast.success(`批量${label}完成：${successCount}/${ids.length}`);
+  };
+
   if (roleLoading) return <div className="container py-24 text-center text-muted-foreground">加载中...</div>;
   if (!isAdmin) {
     return (
