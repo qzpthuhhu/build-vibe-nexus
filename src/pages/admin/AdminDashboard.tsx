@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import StatusBadge from '@/components/StatusBadge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Shield, Users, BarChart3, CheckCircle, XCircle, Ban,
   ExternalLink, ChevronDown, ChevronUp, Upload, Loader2, Trash2, RotateCcw, Globe,
-  Search, ChevronLeft, ChevronRight, AlertTriangle
+  Search, ChevronLeft, ChevronRight, AlertTriangle, ListChecks
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -43,6 +44,10 @@ export default function AdminDashboard() {
   // Search & pagination state
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Bulk selection state
+  const [selectedApps, setSelectedApps] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   // Batch submission state
   const [batchUrls, setBatchUrls] = useState('');
@@ -237,14 +242,16 @@ export default function AdminDashboard() {
     }
   };
 
-  // Reset page when filter/search changes
+  // Reset page & selection when filter/search changes
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
     setCurrentPage(1);
+    setSelectedApps(new Set());
   };
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1);
+    setSelectedApps(new Set());
   };
 
   const { data: appsResult = { apps: [], totalCount: 0 } } = useQuery({
@@ -360,6 +367,52 @@ export default function AdminDashboard() {
     },
   });
 
+  // Bulk actions
+  const toggleSelect = (id: string) => {
+    setSelectedApps(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (selectedApps.size === apps.length) {
+      setSelectedApps(new Set());
+    } else {
+      setSelectedApps(new Set(apps.map((a: any) => a.id)));
+    }
+  };
+
+  const handleBulkAction = async (action: 'approve' | 'reject' | 'offline' | 'delete') => {
+    if (selectedApps.size === 0) return;
+    const ids = Array.from(selectedApps);
+    const label = { approve: '通过', reject: '打回', offline: '下线', delete: '删除' }[action];
+    if (!confirm(`确定要批量${label} ${ids.length} 个应用吗？`)) return;
+
+    setBulkRunning(true);
+    let successCount = 0;
+    for (const appId of ids) {
+      try {
+        if (action === 'delete') {
+          await supabase.from('app_review_logs').insert({ app_id: appId, action: 'delete', operator_id: user!.id, note: '批量删除' } as any);
+          await supabase.from('apps').delete().eq('id', appId);
+        } else {
+          const update: any = {};
+          if (action === 'approve') { update.status = 'approved'; update.approved_at = new Date().toISOString(); }
+          else if (action === 'reject') { update.status = 'rejected'; update.rejection_reason = '批量打回'; }
+          else if (action === 'offline') { update.status = 'offline'; }
+          await supabase.from('apps').update(update).eq('id', appId);
+          await supabase.from('app_review_logs').insert({ app_id: appId, action, operator_id: user!.id, note: `批量${label}` } as any);
+        }
+        successCount++;
+      } catch {}
+    }
+    setBulkRunning(false);
+    setSelectedApps(new Set());
+    queryClient.invalidateQueries({ queryKey: ['admin-apps'] });
+    toast.success(`批量${label}完成：${successCount}/${ids.length}`);
+  };
+
   if (roleLoading) return <div className="container py-24 text-center text-muted-foreground">加载中...</div>;
   if (!isAdmin) {
     return (
@@ -438,13 +491,52 @@ export default function AdminDashboard() {
             </span>
           </div>
 
+          {/* Bulk action bar */}
+          {selectedApps.size > 0 && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <ListChecks className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-medium">已选 {selectedApps.size} 项</span>
+              <div className="flex gap-1.5 ml-auto">
+                <Button size="sm" className="gap-1 bg-emerald-600 hover:bg-emerald-700 text-white h-7 text-xs" disabled={bulkRunning} onClick={() => handleBulkAction('approve')}>
+                  <CheckCircle className="h-3 w-3" /> 批量通过
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1 text-amber-400 border-amber-500/30 h-7 text-xs" disabled={bulkRunning} onClick={() => handleBulkAction('reject')}>
+                  <XCircle className="h-3 w-3" /> 批量打回
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1 h-7 text-xs" disabled={bulkRunning} onClick={() => handleBulkAction('offline')}>
+                  <Ban className="h-3 w-3" /> 批量下线
+                </Button>
+                <Button size="sm" variant="destructive" className="gap-1 h-7 text-xs" disabled={bulkRunning} onClick={() => handleBulkAction('delete')}>
+                  <Trash2 className="h-3 w-3" /> 批量删除
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSelectedApps(new Set())}>
+                  取消
+                </Button>
+              </div>
+              {bulkRunning && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+            </div>
+          )}
+
           {apps.length === 0 ? (
             <p className="text-center text-muted-foreground py-12">暂无数据</p>
           ) : (
             <div className="space-y-3">
+              {/* Select all */}
+              <div className="flex items-center gap-2 px-1">
+                <Checkbox
+                  checked={apps.length > 0 && selectedApps.size === apps.length}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <span className="text-xs text-muted-foreground">全选当页</span>
+              </div>
               {apps.map((app: any) => (
-                <div key={app.id} className="glass-card overflow-hidden">
+                <div key={app.id} className={`glass-card overflow-hidden ${selectedApps.has(app.id) ? 'ring-1 ring-primary/40' : ''}`}>
                   <div className="p-4 flex items-center gap-4">
+                    <Checkbox
+                      checked={selectedApps.has(app.id)}
+                      onCheckedChange={() => toggleSelect(app.id)}
+                      className="shrink-0"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-semibold truncate">{app.title}</span>
