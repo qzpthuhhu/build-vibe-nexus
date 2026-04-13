@@ -491,10 +491,44 @@ export default function AdminDashboard() {
             </span>
           </div>
 
+          {/* Bulk action bar */}
+          {selectedApps.size > 0 && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <ListChecks className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-medium">已选 {selectedApps.size} 项</span>
+              <div className="flex gap-1.5 ml-auto">
+                <Button size="sm" className="gap-1 bg-emerald-600 hover:bg-emerald-700 text-white h-7 text-xs" disabled={bulkRunning} onClick={() => handleBulkAction('approve')}>
+                  <CheckCircle className="h-3 w-3" /> 批量通过
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1 text-amber-400 border-amber-500/30 h-7 text-xs" disabled={bulkRunning} onClick={() => handleBulkAction('reject')}>
+                  <XCircle className="h-3 w-3" /> 批量打回
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1 h-7 text-xs" disabled={bulkRunning} onClick={() => handleBulkAction('offline')}>
+                  <Ban className="h-3 w-3" /> 批量下线
+                </Button>
+                <Button size="sm" variant="destructive" className="gap-1 h-7 text-xs" disabled={bulkRunning} onClick={() => handleBulkAction('delete')}>
+                  <Trash2 className="h-3 w-3" /> 批量删除
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSelectedApps(new Set())}>
+                  取消
+                </Button>
+              </div>
+              {bulkRunning && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+            </div>
+          )}
+
           {apps.length === 0 ? (
             <p className="text-center text-muted-foreground py-12">暂无数据</p>
           ) : (
             <div className="space-y-3">
+              {/* Select all */}
+              <div className="flex items-center gap-2 px-1">
+                <Checkbox
+                  checked={apps.length > 0 && selectedApps.size === apps.length}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <span className="text-xs text-muted-foreground">全选当页</span>
+              </div>
               {apps.map((app: any) => (
                 <div key={app.id} className="glass-card overflow-hidden">
                   <div className="p-4 flex items-center gap-4">
