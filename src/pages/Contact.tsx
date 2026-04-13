@@ -1,5 +1,6 @@
-import { useTranslation } from 'react-i18next';
 import { Mail, MessageCircle, Sparkles, Users, Lightbulb, Rocket, Gift } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import wechatQr from '@/assets/wechat-qr.jpg';
 import { Card, CardContent } from '@/components/ui/card';
 
 const BENEFITS = [
@@ -41,9 +42,7 @@ export default function Contact() {
                 <h2 className="text-lg font-semibold">💬 微信交流</h2>
               </div>
               {/* QR Placeholder */}
-              <div className="aspect-square max-w-[200px] mx-auto rounded-xl bg-secondary border border-border/50 flex items-center justify-center">
-                <span className="text-xs text-muted-foreground">微信二维码</span>
-              </div>
+              <img src={wechatQr} alt="微信二维码" className="max-w-[200px] mx-auto rounded-xl border border-border/50" />
               <div className="text-sm text-muted-foreground space-y-1 text-center">
                 <p>扫码添加微信（备注：<span className="text-primary font-medium">vbcoding</span>）</p>
                 <p>我会邀请你进入 AI 创作者交流群</p>

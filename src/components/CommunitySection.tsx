@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MessageCircle, Mail, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import wechatQr from '@/assets/wechat-qr.jpg';
 
 export default function CommunitySection() {
   return (
@@ -26,9 +27,7 @@ export default function CommunitySection() {
               <MessageCircle className="h-4 w-4 text-primary" />
               <span className="text-sm font-semibold">💬 微信交流</span>
             </div>
-            <div className="aspect-square max-w-[140px] mx-auto rounded-lg bg-secondary border border-border/50 flex items-center justify-center">
-              <span className="text-xs text-muted-foreground">微信二维码</span>
-            </div>
+            <img src={wechatQr} alt="微信二维码" className="max-w-[140px] mx-auto rounded-lg border border-border/50" />
             <p className="text-xs text-muted-foreground">
               扫码添加微信（备注：<span className="text-primary font-medium">vbcoding</span>）<br />
               我会邀请你进入 AI 创作者交流群
