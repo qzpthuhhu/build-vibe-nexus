@@ -1,7 +1,6 @@
 import { Mail, MessageCircle, Sparkles, Users, Lightbulb, Rocket, Gift } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import wechatQr from '@/assets/wechat-qr.jpg';
-import { Card, CardContent } from '@/components/ui/card';
 
 const BENEFITS = [
   { icon: Lightbulb, key: 'inspiration' },
