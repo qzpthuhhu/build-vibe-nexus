@@ -242,14 +242,16 @@ export default function AdminDashboard() {
     }
   };
 
-  // Reset page when filter/search changes
+  // Reset page & selection when filter/search changes
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
     setCurrentPage(1);
+    setSelectedApps(new Set());
   };
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1);
+    setSelectedApps(new Set());
   };
 
   const { data: appsResult = { apps: [], totalCount: 0 } } = useQuery({
