@@ -1,6 +1,7 @@
 {
   "nav": {
-    "ranking": "랭킹",
+"ranking": "랭킹",
+    "contact": "연락처",
     "submit": "앱 등록",
     "login": "로그인",
     "profile": "마이페이지",
