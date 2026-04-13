@@ -45,6 +45,10 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Bulk selection state
+  const [selectedApps, setSelectedApps] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
+
   // Batch submission state
   const [batchUrls, setBatchUrls] = useState('');
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
