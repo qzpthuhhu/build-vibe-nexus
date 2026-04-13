@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import StatusBadge from '@/components/StatusBadge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Shield, Users, BarChart3, CheckCircle, XCircle, Ban,
   ExternalLink, ChevronDown, ChevronUp, Upload, Loader2, Trash2, RotateCcw, Globe,
-  Search, ChevronLeft, ChevronRight, AlertTriangle
+  Search, ChevronLeft, ChevronRight, AlertTriangle, ListChecks
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
