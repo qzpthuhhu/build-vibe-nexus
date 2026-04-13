@@ -530,8 +530,13 @@ export default function AdminDashboard() {
                 <span className="text-xs text-muted-foreground">全选当页</span>
               </div>
               {apps.map((app: any) => (
-                <div key={app.id} className="glass-card overflow-hidden">
+                <div key={app.id} className={`glass-card overflow-hidden ${selectedApps.has(app.id) ? 'ring-1 ring-primary/40' : ''}`}>
                   <div className="p-4 flex items-center gap-4">
+                    <Checkbox
+                      checked={selectedApps.has(app.id)}
+                      onCheckedChange={() => toggleSelect(app.id)}
+                      className="shrink-0"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-semibold truncate">{app.title}</span>
