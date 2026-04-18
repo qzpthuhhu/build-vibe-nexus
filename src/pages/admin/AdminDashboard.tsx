@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import { ensureHttpUrl } from '@/lib/url';
 import { sendTransactionalEmail, getSiteUrl } from '@/lib/email';
 import MediaGallery from '@/components/MediaGallery';
+import AdminReviewPanel from '@/components/admin/AdminReviewPanel';
 
 type AdminTab = 'review' | 'users' | 'stats' | 'batch';
 
