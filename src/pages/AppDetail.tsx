@@ -18,6 +18,8 @@ import {
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ensureHttpUrl, queueEngagementNotification } from '@/lib/url';
+import { sendTransactionalEmail, userHasPreference } from '@/lib/email';
 
 export default function AppDetail() {
   const { id } = useParams<{ id: string }>();
