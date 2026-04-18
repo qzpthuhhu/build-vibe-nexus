@@ -591,30 +591,31 @@ export default function AdminDashboard() {
                   </div>
 
                   {expandedApp === app.id && (
-                    <div className="px-4 pb-4 border-t border-border/50 pt-3 space-y-3">
-                      <div className="space-y-2">
+                    <div className="px-4 pb-4 border-t border-border/50 pt-3 space-y-4">
+                      <AdminReviewPanel app={app} />
+                      <div className="space-y-2 pt-2 border-t border-border/30">
                         <Textarea
                           value={reviewNote}
                           onChange={(e) => setReviewNote(e.target.value)}
-                          placeholder="审核备注（可选）"
+                          placeholder="审核备注（可选，用户可见）"
                           className="text-xs min-h-[60px] bg-secondary/50 border-border/50 resize-none"
                         />
                         {app.status !== 'rejected' && (
                           <Input
                             value={rejectionReason}
                             onChange={(e) => setRejectionReason(e.target.value)}
-                            placeholder="驳回原因（打回时必填）"
+                            placeholder="驳回原因（打回时必填，将通过邮件通知作者）"
                             className="text-xs bg-secondary/50 border-border/50"
                           />
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button
                           size="sm"
                           className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
                           onClick={() => reviewAction.mutate({ appId: app.id, action: 'approve', note: reviewNote })}
                         >
-                          <CheckCircle className="h-3.5 w-3.5" /> 通过
+                          <CheckCircle className="h-3.5 w-3.5" /> 通过并通知
                         </Button>
                         <Button
                           size="sm"
@@ -625,7 +626,7 @@ export default function AdminDashboard() {
                             reviewAction.mutate({ appId: app.id, action: 'reject', note: reviewNote, reason: rejectionReason });
                           }}
                         >
-                          <XCircle className="h-3.5 w-3.5" /> 打回
+                          <XCircle className="h-3.5 w-3.5" /> 打回并通知
                         </Button>
                         <Button
                           size="sm"
