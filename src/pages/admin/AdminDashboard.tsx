@@ -17,6 +17,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { ensureHttpUrl } from '@/lib/url';
+import { sendTransactionalEmail, getSiteUrl } from '@/lib/email';
+import MediaGallery from '@/components/MediaGallery';
 
 type AdminTab = 'review' | 'users' | 'stats' | 'batch';
 
@@ -339,6 +342,26 @@ export default function AdminDashboard() {
         operator_id: user!.id,
         note: note || reason || null,
       } as any);
+
+      // Send email notification to author
+      if (action === 'approve' || action === 'reject') {
+        const targetApp = apps.find((a: any) => a.id === appId);
+        if (targetApp) {
+          const siteUrl = await getSiteUrl();
+          const tpl = action === 'approve' ? 'app-approved-user' : 'app-rejected-user';
+          sendTransactionalEmail({
+            templateName: tpl,
+            recipientEmail: '',
+            templateData: {
+              recipient_user_id: targetApp.user_id,
+              app_title: targetApp.title,
+              app_url: `${siteUrl}/app/${appId}`,
+              rejection_reason: reason || '',
+              review_note: note || '',
+            },
+          });
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-apps'] });
