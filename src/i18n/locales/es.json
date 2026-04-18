@@ -1,6 +1,6 @@
 {
   "nav": {
-"ranking": "Ranking",
+    "ranking": "Ranking",
     "contact": "Contacto",
     "submit": "Publicar app",
     "login": "Iniciar sesión",
@@ -235,5 +235,30 @@
     "developer": "👨‍💻 Desarrollo",
     "data": "📊 Datos",
     "other": "📦 Otros"
+  },
+  "email_prefs": {
+    "title": "Notificaciones por correo",
+    "saved": "Guardado",
+    "save_failed": "Error al guardar",
+    "review_title": "Actualizaciones de revisión",
+    "review_desc": "Notificar cuando tu app sea aprobada o rechazada",
+    "comment_title": "Nuevos comentarios",
+    "comment_desc": "Notificar cuando comenten tu app",
+    "like_title": "Resumen diario de likes",
+    "like_desc": "Resumen diario de likes en tus apps",
+    "favorite_title": "Resumen diario de favoritos",
+    "favorite_desc": "Resumen diario de favoritos en tus apps",
+    "announce_title": "Anuncios",
+    "announce_desc": "Anuncios importantes de la plataforma"
+  },
+  "unsubscribe": {
+    "processing": "Procesando tu solicitud…",
+    "success_title": "Cancelaste la suscripción",
+    "success_default": "Ya no recibirás estos correos.",
+    "error_title": "Error al cancelar",
+    "error_default": "No se pudo procesar tu solicitud.",
+    "invalid_token": "Token inválido o ausente.",
+    "manage_hint": "Gestiona los tipos de notificación en Perfil › Notificaciones.",
+    "return_home": "Volver al inicio"
   }
 }
