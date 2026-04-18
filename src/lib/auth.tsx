@@ -76,6 +76,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (error) throw error;
+    // Fire welcome email (silent failure)
+    try {
+      await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'welcome-user',
+          recipientEmail: email,
+          templateData: {
+            display_name: displayName || email.split('@')[0],
+            site_url: window.location.origin,
+          },
+        },
+      });
+    } catch (e) {
+      console.warn('[auth] welcome email failed', e);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
