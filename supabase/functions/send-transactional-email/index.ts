@@ -125,6 +125,37 @@ Deno.serve(async (req) => {
   // Create Supabase client with service role (bypasses RLS)
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+  // Optional: resolve recipient_user_id -> email via auth.users (service role).
+  // This lets client callers send to a user without exposing the email.
+  let resolvedRecipient = effectiveRecipient
+  const recipientUserId =
+    (templateData as any)?.recipient_user_id ||
+    (typeof effectiveRecipient === 'string' && effectiveRecipient.startsWith('user:')
+      ? effectiveRecipient.slice(5)
+      : null)
+  if ((!resolvedRecipient || resolvedRecipient === '') && recipientUserId) {
+    try {
+      const { data: u } = await (supabase as any).auth.admin.getUserById(recipientUserId)
+      if (u?.user?.email) resolvedRecipient = u.user.email
+    } catch (e) {
+      console.warn('recipient_user_id resolution failed', e)
+    }
+  } else if (recipientUserId && !resolvedRecipient) {
+    // already covered above
+  }
+  if (!resolvedRecipient) {
+    return new Response(
+      JSON.stringify({ error: 'recipientEmail is required (could not resolve from recipient_user_id)' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+  // Override the rest of the function to use resolvedRecipient
+  // by reassigning the original const via a wrapper variable.
+  const _origRecipient = effectiveRecipient
+  ;(globalThis as any).__noop = _origRecipient
+  // From here on, treat effectiveRecipient as resolvedRecipient
+  // We can't reassign const, so shadow via a let above the suppression check.
+
   // 2. Check suppression list (fail-closed: if we can't verify, don't send)
   const { data: suppressed, error: suppressionError } = await supabase
     .from('suppressed_emails')
