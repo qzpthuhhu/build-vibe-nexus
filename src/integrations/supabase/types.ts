@@ -87,6 +87,30 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          admin_notify_email: string
+          id: number
+          site_name: string
+          site_url: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notify_email?: string
+          id?: number
+          site_name?: string
+          site_url?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notify_email?: string
+          id?: number
+          site_name?: string
+          site_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       apps: {
         Row: {
           access_type: string | null
@@ -257,6 +281,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_preferences: {
+        Row: {
+          announcement_notify: boolean
+          comment_notify: boolean
+          created_at: string
+          favorite_digest: boolean
+          id: string
+          like_digest: boolean
+          review_notify: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          announcement_notify?: boolean
+          comment_notify?: boolean
+          created_at?: string
+          favorite_digest?: boolean
+          id?: string
+          like_digest?: boolean
+          review_notify?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          announcement_notify?: boolean
+          comment_notify?: boolean
+          created_at?: string
+          favorite_digest?: boolean
+          id?: string
+          like_digest?: boolean
+          review_notify?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -395,6 +455,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "likes_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pending_engagement_notifications: {
+        Row: {
+          actor_user_id: string
+          app_id: string
+          created_at: string
+          event_type: string
+          id: string
+          recipient_user_id: string
+        }
+        Insert: {
+          actor_user_id: string
+          app_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          recipient_user_id: string
+        }
+        Update: {
+          actor_user_id?: string
+          app_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          recipient_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_engagement_notifications_app_id_fkey"
             columns: ["app_id"]
             isOneToOne: false
             referencedRelation: "apps"
