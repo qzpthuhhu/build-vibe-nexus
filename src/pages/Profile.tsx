@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import StatusBadge from '@/components/StatusBadge';
+import EmailPreferencesCard from '@/components/EmailPreferencesCard';
 import { toast } from 'sonner';
 
 type Tab = 'apps' | 'favorites';
@@ -188,6 +189,11 @@ export default function Profile() {
           </div>
         </div>
       )}
+
+      {/* Email preferences */}
+      <div className="animate-fade-up stagger-2">
+        <EmailPreferencesCard />
+      </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-1">

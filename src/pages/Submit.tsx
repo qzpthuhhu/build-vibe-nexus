@@ -23,6 +23,8 @@ import MediaUploader from '@/components/MediaUploader';
 import { toast } from 'sonner';
 import { ArrowLeft, Send, Sparkles, Save, Loader2, Globe, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
 import { CATEGORIES, inferCategory } from '@/lib/categories';
+import { ensureHttpUrl } from '@/lib/url';
+import { sendTransactionalEmail, getAdminNotifyEmail, getSiteUrl } from '@/lib/email';
 
 const TECH_OPTIONS = ['Lovable', 'Cursor', 'Dify', 'LangChain', 'OpenAI', 'Claude', 'V0', 'Bolt', 'Replit', '其他'];
 
@@ -314,7 +316,7 @@ export default function Submit() {
 
       const appData = {
         user_id: user.id,
-        url: form.url,
+        url: ensureHttpUrl(form.url),
         title: form.title,
         description: form.description,
         cover_image: coverUrl,
@@ -329,13 +331,14 @@ export default function Submit() {
         submitted_at: asDraft ? null : new Date().toISOString(),
         platform_type: platform || null,
         access_type: access || null,
-        experience_url: form.experience_url || null,
+        experience_url: ensureHttpUrl(form.experience_url) || null,
         mini_program_qr_url: qrUrl,
-        app_store_url: form.app_store_url || null,
-        android_download_url: form.android_download_url || null,
+        app_store_url: ensureHttpUrl(form.app_store_url) || null,
+        android_download_url: ensureHttpUrl(form.android_download_url) || null,
         category: form.category || 'other',
       } as any;
 
+      let savedAppId: string | null = isEdit ? editId! : null;
       if (isEdit) {
         const { error } = await supabase.from('apps').update(appData).eq('id', editId!);
         if (error) throw error;
@@ -344,6 +347,7 @@ export default function Submit() {
       } else {
         const { data, error } = await supabase.from('apps').insert(appData).select('id').single();
         if (error) throw error;
+        savedAppId = data.id;
         await saveMedia(data.id);
 
         if (!asDraft) {
@@ -360,6 +364,35 @@ export default function Submit() {
           toast.success(t('submit_page.submit_success'));
         } else {
           toast.success(t('submit_page.draft_saved'));
+        }
+      }
+
+      // Fire submission notifications (only when actually submitted for review)
+      if (!asDraft && savedAppId) {
+        const siteUrl = await getSiteUrl();
+        const adminEmail = await getAdminNotifyEmail();
+        const appUrl = `${siteUrl}/app/${savedAppId}`;
+        // Notify admin
+        sendTransactionalEmail({
+          templateName: 'app-submitted-admin',
+          recipientEmail: adminEmail,
+          templateData: {
+            app_title: appData.title,
+            app_url: appUrl,
+            submitter_email: user.email,
+            description: appData.description || '',
+          },
+        });
+        // Confirm to submitter
+        if (user.email) {
+          sendTransactionalEmail({
+            templateName: 'app-submitted-user',
+            recipientEmail: user.email,
+            templateData: {
+              app_title: appData.title,
+              app_url: appUrl,
+            },
+          });
         }
       }
       navigate('/profile');

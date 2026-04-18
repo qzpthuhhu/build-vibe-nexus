@@ -1,6 +1,6 @@
 {
   "nav": {
-"ranking": "Classement",
+    "ranking": "Classement",
     "contact": "Contact",
     "submit": "Publier une app",
     "login": "Connexion",
@@ -235,5 +235,30 @@
     "developer": "👨‍💻 Développeur",
     "data": "📊 Données",
     "other": "📦 Autre"
+  },
+  "email_prefs": {
+    "title": "Notifications e-mail",
+    "saved": "Enregistré",
+    "save_failed": "Échec de l'enregistrement",
+    "review_title": "Mises à jour de revue",
+    "review_desc": "Notifier l'approbation ou le rejet",
+    "comment_title": "Nouveaux commentaires",
+    "comment_desc": "Notifier les nouveaux commentaires",
+    "like_title": "Résumé quotidien des likes",
+    "like_desc": "Résumé quotidien des likes",
+    "favorite_title": "Résumé quotidien des favoris",
+    "favorite_desc": "Résumé quotidien des favoris",
+    "announce_title": "Annonces",
+    "announce_desc": "Annonces importantes de la plateforme"
+  },
+  "unsubscribe": {
+    "processing": "Traitement de votre demande…",
+    "success_title": "Désabonnement réussi",
+    "success_default": "Vous ne recevrez plus ces e-mails.",
+    "error_title": "Échec du désabonnement",
+    "error_default": "Impossible de traiter votre demande.",
+    "invalid_token": "Jeton invalide ou manquant.",
+    "manage_hint": "Gérez les notifications dans Profil › Notifications e-mail.",
+    "return_home": "Retour à l'accueil"
   }
 }

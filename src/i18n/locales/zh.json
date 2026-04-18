@@ -1,6 +1,6 @@
 {
   "nav": {
-"ranking": "排行榜",
+    "ranking": "排行榜",
     "contact": "联系",
     "submit": "发布应用",
     "login": "登录",
@@ -235,5 +235,30 @@
     "developer": "👨‍💻 开发者",
     "data": "📊 数据分析",
     "other": "📦 其他"
+  },
+  "email_prefs": {
+    "title": "邮件通知",
+    "saved": "已保存",
+    "save_failed": "保存失败",
+    "review_title": "审核结果",
+    "review_desc": "作品通过或被驳回时邮件通知我",
+    "comment_title": "新评论",
+    "comment_desc": "我的作品收到评论时立即通知",
+    "like_title": "点赞每日聚合",
+    "like_desc": "每日汇总我的作品收到的点赞",
+    "favorite_title": "收藏每日聚合",
+    "favorite_desc": "每日汇总我的作品被收藏的情况",
+    "announce_title": "平台公告",
+    "announce_desc": "重要平台更新与公告"
+  },
+  "unsubscribe": {
+    "processing": "正在处理您的退订请求…",
+    "success_title": "退订成功",
+    "success_default": "您将不再收到此类邮件。",
+    "error_title": "退订失败",
+    "error_default": "无法处理您的请求。",
+    "invalid_token": "退订链接无效或已失效。",
+    "manage_hint": "您可在「个人主页 › 邮件通知」中分别管理各类通知。",
+    "return_home": "返回首页"
   }
 }

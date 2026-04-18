@@ -1,6 +1,6 @@
 {
   "nav": {
-"ranking": "ランキング",
+    "ranking": "ランキング",
     "contact": "お問い合わせ",
     "submit": "アプリを公開",
     "login": "ログイン",
@@ -235,5 +235,30 @@
     "developer": "👨‍💻 開発者",
     "data": "📊 データ",
     "other": "📦 その他"
+  },
+  "email_prefs": {
+    "title": "メール通知",
+    "saved": "保存しました",
+    "save_failed": "保存に失敗",
+    "review_title": "審査結果",
+    "review_desc": "承認・却下時にメール通知",
+    "comment_title": "新しいコメント",
+    "comment_desc": "コメントが付いたら通知",
+    "like_title": "いいね日次まとめ",
+    "like_desc": "作品のいいねを日次でまとめて通知",
+    "favorite_title": "お気に入り日次まとめ",
+    "favorite_desc": "作品のお気に入りを日次でまとめて通知",
+    "announce_title": "お知らせ",
+    "announce_desc": "プラットフォームの重要なお知らせ"
+  },
+  "unsubscribe": {
+    "processing": "リクエストを処理しています…",
+    "success_title": "配信停止しました",
+    "success_default": "このメールは今後届きません。",
+    "error_title": "配信停止に失敗",
+    "error_default": "リクエストを処理できませんでした。",
+    "invalid_token": "トークンが無効です。",
+    "manage_hint": "プロフィール › メール通知 から個別に管理できます。",
+    "return_home": "ホームに戻る"
   }
 }

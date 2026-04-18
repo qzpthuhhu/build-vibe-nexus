@@ -1,6 +1,6 @@
 {
   "nav": {
-"ranking": "Rangliste",
+    "ranking": "Rangliste",
     "contact": "Kontakt",
     "submit": "App einreichen",
     "login": "Anmelden",
@@ -235,5 +235,30 @@
     "developer": "👨‍💻 Entwickler",
     "data": "📊 Daten",
     "other": "📦 Sonstige"
+  },
+  "email_prefs": {
+    "title": "E-Mail-Benachrichtigungen",
+    "saved": "Gespeichert",
+    "save_failed": "Speichern fehlgeschlagen",
+    "review_title": "Prüfungs-Updates",
+    "review_desc": "Benachrichtigung bei Freigabe oder Ablehnung",
+    "comment_title": "Neue Kommentare",
+    "comment_desc": "Sofortige Benachrichtigung bei Kommentaren",
+    "like_title": "Tägliche Like-Zusammenfassung",
+    "like_desc": "Tägliche Übersicht der Likes",
+    "favorite_title": "Tägliche Favoriten-Zusammenfassung",
+    "favorite_desc": "Tägliche Übersicht der Favoriten",
+    "announce_title": "Ankündigungen",
+    "announce_desc": "Wichtige Plattform-Ankündigungen"
+  },
+  "unsubscribe": {
+    "processing": "Anfrage wird bearbeitet…",
+    "success_title": "Abgemeldet",
+    "success_default": "Sie erhalten diese E-Mails nicht mehr.",
+    "error_title": "Abmeldung fehlgeschlagen",
+    "error_default": "Anfrage konnte nicht bearbeitet werden.",
+    "invalid_token": "Ungültiger oder fehlender Token.",
+    "manage_hint": "Verwalten Sie einzelne Benachrichtigungen unter Profil › E-Mail-Benachrichtigungen.",
+    "return_home": "Zur Startseite"
   }
 }

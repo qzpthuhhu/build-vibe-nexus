@@ -1,6 +1,6 @@
 {
   "nav": {
-"ranking": "랭킹",
+    "ranking": "랭킹",
     "contact": "연락처",
     "submit": "앱 등록",
     "login": "로그인",
@@ -235,5 +235,30 @@
     "developer": "👨‍💻 개발자",
     "data": "📊 데이터",
     "other": "📦 기타"
+  },
+  "email_prefs": {
+    "title": "이메일 알림",
+    "saved": "저장됨",
+    "save_failed": "저장 실패",
+    "review_title": "심사 결과",
+    "review_desc": "승인 또는 반려 시 이메일 알림",
+    "comment_title": "새 댓글",
+    "comment_desc": "댓글이 달리면 즉시 알림",
+    "like_title": "좋아요 일일 요약",
+    "like_desc": "작품의 좋아요를 매일 요약",
+    "favorite_title": "즐겨찾기 일일 요약",
+    "favorite_desc": "작품의 즐겨찾기를 매일 요약",
+    "announce_title": "공지사항",
+    "announce_desc": "중요한 플랫폼 공지"
+  },
+  "unsubscribe": {
+    "processing": "요청을 처리 중입니다…",
+    "success_title": "구독 해지되었습니다",
+    "success_default": "더 이상 이러한 이메일을 받지 않습니다.",
+    "error_title": "구독 해지 실패",
+    "error_default": "요청을 처리할 수 없습니다.",
+    "invalid_token": "토큰이 잘못되었거나 없습니다.",
+    "manage_hint": "프로필 › 이메일 알림에서 개별 관리할 수 있습니다.",
+    "return_home": "홈으로"
   }
 }
