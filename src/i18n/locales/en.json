@@ -235,5 +235,30 @@
     "developer": "👨‍💻 Developer",
     "data": "📊 Data",
     "other": "📦 Other"
+  },
+  "email_prefs": {
+    "title": "Email Notifications",
+    "saved": "Saved",
+    "save_failed": "Save failed",
+    "review_title": "Review updates",
+    "review_desc": "Notify when your app is approved or rejected",
+    "comment_title": "New comments",
+    "comment_desc": "Notify when someone comments on your app",
+    "like_title": "Daily like digest",
+    "like_desc": "Daily summary of likes on your apps",
+    "favorite_title": "Daily favorite digest",
+    "favorite_desc": "Daily summary of favorites on your apps",
+    "announce_title": "Announcements",
+    "announce_desc": "Important platform announcements"
+  },
+  "unsubscribe": {
+    "processing": "Processing your request…",
+    "success_title": "You've been unsubscribed",
+    "success_default": "You will no longer receive these emails.",
+    "error_title": "Unsubscribe failed",
+    "error_default": "Could not process your request.",
+    "invalid_token": "Invalid or missing token.",
+    "manage_hint": "You can manage individual notification types in Profile › Email Notifications.",
+    "return_home": "Back to home"
   }
 }
