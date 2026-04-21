@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anyone can view app media" ON storage.objects;

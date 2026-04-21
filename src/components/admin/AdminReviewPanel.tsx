@@ -26,6 +26,15 @@ export default function AdminReviewPanel({ app }: Props) {
     },
   });
 
+  const { data: contactInfo } = useQuery({
+    queryKey: ['admin-app-contact-info', app.id],
+    queryFn: async () => {
+      const { data } = await supabase.rpc('get_app_contact_info', { _app_id: app.id });
+      return (data as string) || null;
+    },
+    enabled: !!app.is_for_sale,
+  });
+
   const externalUrl = ensureHttpUrl(app.url);
   const expUrl = ensureHttpUrl(app.experience_url);
   const appStoreUrl = ensureHttpUrl(app.app_store_url);
@@ -141,7 +150,7 @@ export default function AdminReviewPanel({ app }: Props) {
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-1">
           <div className={FIELD_LABEL + ' flex items-center gap-1'}><DollarSign className="h-3 w-3" /> 项目出售</div>
           <div className="text-xs">价格：<span className="font-medium">{app.price || '面议'}</span></div>
-          <div className="text-xs">联系方式：<span className="font-medium">{app.contact_info || '-'}</span></div>
+          <div className="text-xs">联系方式：<span className="font-medium">{contactInfo || '-'}</span></div>
         </div>
       )}
 

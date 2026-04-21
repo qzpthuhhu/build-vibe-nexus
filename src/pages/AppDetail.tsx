@@ -41,6 +41,16 @@ export default function AppDetail() {
     enabled: !!id,
   });
 
+  // Contact info is stored in a private table; only owner/admin can read it.
+  const { data: contactInfo } = useQuery({
+    queryKey: ['app-contact-info', id],
+    queryFn: async () => {
+      const { data } = await supabase.rpc('get_app_contact_info', { _app_id: id! });
+      return (data as string) || null;
+    },
+    enabled: !!id && !!user,
+  });
+
   const { data: author } = useQuery({
     queryKey: ['profile', app?.user_id],
     queryFn: async () => {
@@ -346,7 +356,7 @@ export default function AppDetail() {
           <div className="animate-fade-up stagger-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 space-y-3">
             <h2 className="text-lg font-semibold flex items-center gap-2">{t('app_detail.project_for_sale')}</h2>
             {a.price && <p className="text-sm"><span className="text-muted-foreground">{t('app_detail.price')}：</span><span className="font-medium text-emerald-400">{a.price}</span></p>}
-            {a.contact_info && <p className="text-sm"><span className="text-muted-foreground">{t('app_detail.contact')}：</span><span className="font-medium">{a.contact_info}</span></p>}
+            {contactInfo && <p className="text-sm"><span className="text-muted-foreground">{t('app_detail.contact')}：</span><span className="font-medium">{contactInfo}</span></p>}
           </div>
         )}
 
