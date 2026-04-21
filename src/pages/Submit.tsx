@@ -372,6 +372,17 @@ export default function Submit() {
         }
       }
 
+      // Persist contact_info to private table (only when selling)
+      if (savedAppId) {
+        if (form.is_for_sale && form.contact_info.trim()) {
+          await supabase
+            .from('app_contact_info')
+            .upsert({ app_id: savedAppId, contact_info: form.contact_info.trim() }, { onConflict: 'app_id' });
+        } else {
+          await supabase.from('app_contact_info').delete().eq('app_id', savedAppId);
+        }
+      }
+
       // Fire submission notifications (only when actually submitted for review)
       if (!asDraft && savedAppId) {
         const siteUrl = await getSiteUrl();
