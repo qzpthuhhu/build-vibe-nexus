@@ -118,7 +118,13 @@ export default function Submit() {
         .eq('user_id', user!.id)
         .single();
       if (error) throw error;
-      return data;
+      // Load contact_info from separate private table
+      const { data: contact } = await supabase
+        .from('app_contact_info')
+        .select('contact_info')
+        .eq('app_id', editId!)
+        .maybeSingle();
+      return { ...data, contact_info: contact?.contact_info || '' } as any;
     },
     enabled: isEdit && !!user,
   });
@@ -326,7 +332,6 @@ export default function Submit() {
         monetization_stage: stage || null,
         is_for_sale: form.is_for_sale,
         price: form.is_for_sale ? (form.price || null) : null,
-        contact_info: form.is_for_sale ? form.contact_info : null,
         status: asDraft ? 'draft' : 'pending',
         submitted_at: asDraft ? null : new Date().toISOString(),
         platform_type: platform || null,
