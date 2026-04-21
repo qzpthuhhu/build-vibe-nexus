@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_contact_info: {
+        Row: {
+          app_id: string
+          contact_info: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          app_id: string
+          contact_info: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          app_id?: string
+          contact_info?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_contact_info_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: true
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_media: {
         Row: {
           app_id: string
@@ -119,7 +148,6 @@ export type Database = {
           approved_at: string | null
           boost_expires_at: string | null
           category: string
-          contact_info: string | null
           cover_image: string | null
           created_at: string
           description: string | null
@@ -154,7 +182,6 @@ export type Database = {
           approved_at?: string | null
           boost_expires_at?: string | null
           category?: string
-          contact_info?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
@@ -189,7 +216,6 @@ export type Database = {
           approved_at?: string | null
           boost_expires_at?: string | null
           category?: string
-          contact_info?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
