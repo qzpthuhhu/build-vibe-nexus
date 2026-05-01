@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
-import { MessageCircle, Mail, ArrowRight } from 'lucide-react';
+import { Mail, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import wechatQr from '@/assets/wechat-qr.jpg';
 
 export default function CommunitySection() {
   return (
