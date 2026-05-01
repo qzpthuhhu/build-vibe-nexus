@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
-import { MessageCircle, Mail, ArrowRight } from 'lucide-react';
+import { Mail, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import wechatQr from '@/assets/wechat-qr.jpg';
 
 export default function CommunitySection() {
   return (
@@ -20,22 +19,9 @@ export default function CommunitySection() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 max-w-2xl mx-auto">
-          {/* WeChat */}
-          <div className="flex-1 w-full rounded-xl border border-border/50 bg-card/60 p-5 space-y-3">
-            <div className="flex items-center justify-center gap-2">
-              <MessageCircle className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">💬 微信交流</span>
-            </div>
-            <img src={wechatQr} alt="微信二维码" className="max-w-[140px] mx-auto rounded-lg border border-border/50" />
-            <p className="text-xs text-muted-foreground">
-              扫码添加微信（备注：<span className="text-primary font-medium">vbcoding</span>）<br />
-              我会邀请你进入 AI 创作者交流群
-            </p>
-          </div>
-
+        <div className="flex items-center justify-center max-w-2xl mx-auto">
           {/* Email */}
-          <div className="flex-1 w-full rounded-xl border border-border/50 bg-card/60 p-5 space-y-3">
+          <div className="w-full max-w-sm rounded-xl border border-border/50 bg-card/60 p-5 space-y-3">
             <div className="flex items-center justify-center gap-2">
               <Mail className="h-4 w-4" style={{ color: 'hsl(271 81% 56%)' }} />
               <span className="text-sm font-semibold">📮 邮箱联系</span>
