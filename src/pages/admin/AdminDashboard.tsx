@@ -473,6 +473,7 @@ export default function AdminDashboard() {
           { key: 'users' as AdminTab, label: '用户管理', icon: Users },
           { key: 'stats' as AdminTab, label: '内容统计', icon: BarChart3 },
           { key: 'providers' as AdminTab, label: '服务商管理', icon: Globe },
+          { key: 'orders' as AdminTab, label: 'Token 订单', icon: ListChecks },
         ]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
