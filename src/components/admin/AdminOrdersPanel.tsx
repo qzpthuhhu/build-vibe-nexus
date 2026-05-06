@@ -26,21 +26,10 @@ export default function AdminOrdersPanel() {
     setLoading(true);
     const { data } = await supabase
       .from('token_orders')
-      .select('*, profiles!token_orders_user_id_fkey(display_name, username)')
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(50);
-    
-    // If join fails, fetch without it
-    if (!data) {
-      const { data: ordersOnly } = await supabase
-        .from('token_orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      setOrders((ordersOnly as Order[]) || []);
-    } else {
-      setOrders((data as any[]) || []);
-    }
+    setOrders((data as Order[]) || []);
     setLoading(false);
   };
 
