@@ -14,6 +14,12 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
 import Unsubscribe from "./pages/Unsubscribe";
+import TokenServiceHome from "./pages/token-service/TokenServiceHome";
+import TokenServicePricing from "./pages/token-service/TokenServicePricing";
+import TokenServiceDocs from "./pages/token-service/TokenServiceDocs";
+import TokenServiceDashboard from "./pages/token-service/TokenServiceDashboard";
+import TokenServiceApiKeys from "./pages/token-service/TokenServiceApiKeys";
+import TokenServicePlayground from "./pages/token-service/TokenServicePlayground";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +41,12 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/token-service" element={<TokenServiceHome />} />
+            <Route path="/token-service/pricing" element={<TokenServicePricing />} />
+            <Route path="/token-service/docs" element={<TokenServiceDocs />} />
+            <Route path="/token-service/dashboard" element={<TokenServiceDashboard />} />
+            <Route path="/token-service/api-keys" element={<TokenServiceApiKeys />} />
+            <Route path="/token-service/playground" element={<TokenServicePlayground />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
