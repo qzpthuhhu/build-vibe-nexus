@@ -95,7 +95,7 @@ export default function TokenServiceDocs() {
               <CodeBlock t={t} language="bash" code={`curl https://api.vbcodingshow.com/v1/messages \\
   -H "Authorization: Bearer vb-sk-your-api-key" \\
   -H "Content-Type: application/json" \\
-  -d '{"model": "claude-3-sonnet-20240229", "max_tokens": 1024, "messages": [{"role": "user", "content": "Hello!"}]}'`} />
+  -d '{"model": "claude-sonnet-4-6", "max_tokens": 1024, "messages": [{"role": "user", "content": "Hello!"}]}'`} />
             </section>
 
             <section id="claude-api">
@@ -112,7 +112,7 @@ client = anthropic.Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-3-sonnet-20240229",
+    model="claude-sonnet-4-6",
     max_tokens=1024,
     system="You are a helpful assistant.",
     messages=[
@@ -130,7 +130,7 @@ const client = new Anthropic({
 });
 
 const message = await client.messages.create({
-  model: 'claude-3-sonnet-20240229',
+  model: 'claude-sonnet-4-6',
   max_tokens: 1024,
   messages: [
     { role: 'user', content: 'Hello, Claude!' }
@@ -153,7 +153,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4",
+    model="gpt-5.5",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
@@ -165,7 +165,7 @@ print(response.choices[0].message.content)`} />
   -H "Authorization: Bearer vb-sk-your-api-key" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "gpt-4",
+    "model": "gpt-5.5",
     "messages": [{"role": "user", "content": "Hello!"}],
     "stream": false
   }'`} />
@@ -178,7 +178,7 @@ print(response.choices[0].message.content)`} />
               </p>
               <CodeBlock t={t} language="python" code={`# Claude streaming
 with client.messages.stream(
-    model="claude-3-sonnet-20240229",
+    model="claude-sonnet-4-6",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Write a haiku."}]
 ) as stream:
@@ -199,12 +199,12 @@ with client.messages.stream(
                   </thead>
                   <tbody className="text-muted-foreground">
                     {[
-                      ['claude-3-opus-20240229', 'Claude', '200K'],
-                      ['claude-3-sonnet-20240229', 'Claude', '200K'],
-                      ['claude-3-haiku-20240307', 'Claude', '200K'],
-                      ['gpt-4', 'OpenAI', '128K'],
-                      ['gpt-4-turbo', 'OpenAI', '128K'],
-                      ['gpt-3.5-turbo', 'OpenAI', '16K'],
+                      ['claude-opus-4-7', 'Claude', '200K'],
+                      ['claude-sonnet-4-6', 'Claude', '200K'],
+                      ['claude-haiku-4-5', 'Claude', '200K'],
+                      ['gpt-5.5', 'OpenAI', '200K'],
+                      ['gpt-5.2', 'OpenAI', '128K'],
+                      ['gpt-5.4-mini', 'OpenAI', '128K'],
                     ].map(([model, type, ctx]) => (
                       <tr key={model} className="border-b border-border/30">
                         <td className="py-3 px-4 font-mono text-purple-400">{model}</td>
