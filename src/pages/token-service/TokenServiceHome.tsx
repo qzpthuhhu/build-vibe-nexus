@@ -20,30 +20,29 @@ const message = await client.messages.create({
 
 console.log(message.content);`;
 
-const features = [
-  { icon: Code, title: 'Claude & OpenAI Compatible', desc: 'Use standard SDKs with zero code changes. Drop-in replacement for Claude and OpenAI APIs.' },
-  { icon: Zap, title: 'Ultra-Low Latency', desc: 'Optimized routing with global edge infrastructure. Sub-100ms overhead on every request.' },
-  { icon: Shield, title: 'Enterprise Security', desc: 'API key hashing, rate limiting, request auditing, and IP restrictions built-in.' },
-  { icon: Globe, title: 'Multi-Model Routing', desc: 'Intelligent fallback across providers. Automatic failover ensures 99.9% uptime.' },
-  { icon: BarChart3, title: 'Real-time Analytics', desc: 'Track token usage, latency, costs, and success rates with detailed dashboards.' },
-  { icon: Key, title: 'Flexible API Keys', desc: 'Create multiple keys with custom rate limits, usage caps, and granular permissions.' },
-];
-
-const stats = [
-  { value: '99.9%', label: 'Uptime SLA' },
-  { value: '<100ms', label: 'Avg Overhead' },
-  { value: '10M+', label: 'Tokens / Day' },
-  { value: '5+', label: 'Model Providers' },
-];
-
 export default function TokenServiceHome() {
   const { t } = useTranslation();
+
+  const features = [
+    { icon: Code, title: t('token_service.home_feat_compatible_title'), desc: t('token_service.home_feat_compatible_desc') },
+    { icon: Zap, title: t('token_service.home_feat_latency_title'), desc: t('token_service.home_feat_latency_desc') },
+    { icon: Shield, title: t('token_service.home_feat_security_title'), desc: t('token_service.home_feat_security_desc') },
+    { icon: Globe, title: t('token_service.home_feat_routing_title'), desc: t('token_service.home_feat_routing_desc') },
+    { icon: BarChart3, title: t('token_service.home_feat_analytics_title'), desc: t('token_service.home_feat_analytics_desc') },
+    { icon: Key, title: t('token_service.home_feat_keys_title'), desc: t('token_service.home_feat_keys_desc') },
+  ];
+
+  const stats = [
+    { value: '99.9%', label: t('token_service.home_uptime') },
+    { value: '<100ms', label: t('token_service.home_overhead') },
+    { value: '10M+', label: t('token_service.home_tokens_day') },
+    { value: '5+', label: t('token_service.home_providers') },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/30">
-        {/* Background effects */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(260,60%,15%)_0%,transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(220,60%,12%)_0%,transparent_50%)]" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-purple-500/5 to-transparent rounded-full blur-3xl" />
@@ -53,33 +52,32 @@ export default function TokenServiceHome() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-400 text-sm">
                 <Zap className="h-3.5 w-3.5" />
-                Now Available — Claude 3.5 Sonnet Compatible
+                {t('token_service.home_badge')}
               </div>
               <h1 className="text-4xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-                <span className="text-foreground">Claude-Compatible</span>
+                <span className="text-foreground">{t('token_service.home_title_1')}</span>
                 <br />
                 <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                  API Infrastructure
+                  {t('token_service.home_title_2')}
                 </span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
-                Use Claude/OpenAI SDKs directly. Powered by next-generation foundation models.
-                No code changes needed — just swap your base URL.
+                {t('token_service.home_subtitle')}
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link to="/token-service/dashboard">
                   <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-0 gap-2">
-                    Start Building <ArrowRight className="h-4 w-4" />
+                    {t('token_service.home_start_building')} <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link to="/token-service/api-keys">
                   <Button size="lg" variant="outline" className="border-purple-500/30 hover:bg-purple-500/10">
-                    Get API Key
+                    {t('token_service.home_get_api_key')}
                   </Button>
                 </Link>
                 <Link to="/token-service/docs">
                   <Button size="lg" variant="ghost" className="text-muted-foreground hover:text-foreground">
-                    View Docs
+                    {t('token_service.home_view_docs')}
                   </Button>
                 </Link>
               </div>
@@ -133,9 +131,9 @@ export default function TokenServiceHome() {
       <section className="py-24">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-foreground">Everything You Need</h2>
+            <h2 className="text-3xl font-bold text-foreground">{t('token_service.home_features_title')}</h2>
             <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
-              A complete API infrastructure platform built for AI developers.
+              {t('token_service.home_features_subtitle')}
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -156,19 +154,19 @@ export default function TokenServiceHome() {
       <section className="py-24 border-t border-border/30">
         <div className="container text-center">
           <div className="max-w-2xl mx-auto space-y-6">
-            <h2 className="text-3xl font-bold text-foreground">Ready to Build?</h2>
+            <h2 className="text-3xl font-bold text-foreground">{t('token_service.home_cta_title')}</h2>
             <p className="text-muted-foreground">
-              Get your API key in seconds. Start with 10,000 free tokens.
+              {t('token_service.home_cta_subtitle')}
             </p>
             <div className="flex justify-center gap-3">
               <Link to="/token-service/api-keys">
                 <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-0 gap-2">
-                  Get Started Free <ArrowRight className="h-4 w-4" />
+                  {t('token_service.home_get_started')} <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/token-service/pricing">
                 <Button size="lg" variant="outline" className="border-purple-500/30">
-                  View Pricing
+                  {t('token_service.home_view_pricing')}
                 </Button>
               </Link>
             </div>
