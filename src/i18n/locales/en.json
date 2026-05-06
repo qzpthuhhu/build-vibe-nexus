@@ -1,6 +1,6 @@
 {
   "nav": {
-"ranking": "Ranking",
+    "ranking": "Ranking",
     "contact": "Contact",
     "submit": "Submit App",
     "login": "Login",
@@ -270,8 +270,7 @@
     "nav_dashboard": "Dashboard",
     "nav_api_keys": "API Keys",
     "token_dashboard": "Token Dashboard",
-
-    "home_badge": "Now Available — Claude 3.5 Sonnet Compatible",
+    "home_badge": "Now Available — Claude Opus 4.7 & GPT-5.5 Compatible",
     "home_title_1": "Claude-Compatible",
     "home_title_2": "API Infrastructure",
     "home_subtitle": "Use Claude/OpenAI SDKs directly. Powered by next-generation foundation models. No code changes needed — just swap your base URL.",
@@ -300,7 +299,6 @@
     "home_cta_subtitle": "Get your API key in seconds. Start with 10,000 free tokens.",
     "home_get_started": "Get Started Free",
     "home_view_pricing": "View Pricing",
-
     "pricing_title": "Simple, Transparent Pricing",
     "pricing_subtitle": "Pay only for what you use. Scale from prototype to production with predictable costs.",
     "pricing_free": "Free",
@@ -327,10 +325,9 @@
     "pricing_faq_q2": "Can I switch plans anytime?",
     "pricing_faq_a2": "Yes, you can upgrade or downgrade at any time. Changes take effect immediately and billing is prorated.",
     "pricing_faq_q3": "What models are supported?",
-    "pricing_faq_a3": "We support Claude 3 Opus, Sonnet, and Haiku, as well as OpenAI GPT-4 and GPT-3.5 compatible endpoints.",
+    "pricing_faq_a3": "We support Claude Opus 4.7, Sonnet 4.6, and Haiku 4.5, as well as OpenAI GPT-5.5, GPT-5.2, and GPT-5.4 Mini compatible endpoints.",
     "pricing_faq_q4": "Is there an overage fee?",
     "pricing_faq_a4": "When you exceed your plan limits, requests are throttled rather than charged extra. Upgrade your plan for higher limits.",
-
     "docs_title": "API Documentation",
     "docs_overview": "Overview",
     "docs_auth": "Authentication",
@@ -367,7 +364,6 @@
     "docs_rate_limits_text": "Rate limits depend on your plan tier. Headers X-RateLimit-Remaining and X-RateLimit-Reset are included in every response.",
     "docs_copied": "Copied",
     "docs_copy": "Copy",
-
     "dashboard_title": "Dashboard",
     "dashboard_subtitle": "Monitor your API usage and manage resources",
     "dashboard_manage_keys": "Manage Keys",
@@ -383,7 +379,6 @@
     "dashboard_no_requests": "No requests yet. Create an API key and start making calls to see your activity here.",
     "dashboard_sign_in_title": "Sign in to access your dashboard",
     "dashboard_sign_in": "Sign In",
-
     "api_keys_title": "API Keys",
     "api_keys_subtitle": "Manage your API keys for accessing the Token Service",
     "api_keys_create": "Create Key",
@@ -401,7 +396,6 @@
     "api_keys_create_failed": "Failed to create key",
     "api_keys_revoked": "Key revoked",
     "api_keys_sign_in_title": "Sign in to manage API keys",
-
     "playground_title": "Playground",
     "playground_subtitle": "Test API calls interactively before integrating",
     "playground_send_hint": "Send a message to start testing",

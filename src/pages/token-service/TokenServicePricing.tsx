@@ -10,13 +10,13 @@ export default function TokenServicePricing() {
     {
       nameKey: 'pricing_free', price: '$0', periodKey: 'pricing_forever', tokens: '10,000',
       descKey: 'pricing_free_desc',
-      features: ['10,000 tokens / month', '10 RPM', '100K TPM', '4K context window', 'Claude 3 Haiku compatible', 'Community support'],
+      features: ['10,000 tokens / month', '10 RPM', '100K TPM', '4K context window', 'Claude Haiku 4.5 compatible', 'Community support'],
       ctaKey: 'pricing_start_free', highlight: false,
     },
     {
       nameKey: 'pricing_pro', price: '$29', periodKey: 'pricing_month', tokens: '2,000,000',
       descKey: 'pricing_pro_desc',
-      features: ['2M tokens / month', '60 RPM', '1M TPM', '32K context window', 'All Claude 3 models', 'Streaming support', 'Priority queue', 'Email support'],
+      features: ['2M tokens / month', '60 RPM', '1M TPM', '200K context window', 'All Claude & GPT models', 'Streaming support', 'Priority queue', 'Email support'],
       ctaKey: 'pricing_get_pro', highlight: true,
     },
     {

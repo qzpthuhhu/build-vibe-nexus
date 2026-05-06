@@ -12,7 +12,7 @@ interface Message {
 
 export default function TokenServicePlayground() {
   const { t } = useTranslation();
-  const [model, setModel] = useState('claude-3-sonnet-20240229');
+  const [model, setModel] = useState('claude-sonnet-4-6');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,11 +49,12 @@ export default function TokenServicePlayground() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="claude-3-opus-20240229">Claude 3 Opus</SelectItem>
-              <SelectItem value="claude-3-sonnet-20240229">Claude 3 Sonnet</SelectItem>
-              <SelectItem value="claude-3-haiku-20240307">Claude 3 Haiku</SelectItem>
-              <SelectItem value="gpt-4">GPT-4</SelectItem>
-              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+              <SelectItem value="claude-opus-4-7">Claude Opus 4.7</SelectItem>
+              <SelectItem value="claude-sonnet-4-6">Claude Sonnet 4.6</SelectItem>
+              <SelectItem value="claude-haiku-4-5">Claude Haiku 4.5</SelectItem>
+              <SelectItem value="gpt-5.5">GPT-5.5</SelectItem>
+              <SelectItem value="gpt-5.2">GPT-5.2</SelectItem>
+              <SelectItem value="gpt-5.4-mini">GPT-5.4 Mini</SelectItem>
             </SelectContent>
           </Select>
         </div>

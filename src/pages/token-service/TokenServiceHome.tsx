@@ -11,7 +11,7 @@ const client = new Anthropic({
 });
 
 const message = await client.messages.create({
-  model: 'claude-3-opus-20240229',
+  model: 'claude-opus-4-7',
   max_tokens: 1024,
   messages: [
     { role: 'user', content: 'Hello, Claude!' }
