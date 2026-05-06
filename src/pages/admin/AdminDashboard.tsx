@@ -843,6 +843,7 @@ export default function AdminDashboard() {
 
       {/* Providers Tab */}
       {tab === 'providers' && <AdminProvidersPanel />}
+      {tab === 'orders' && <AdminOrdersPanel />}
     </div>
   );
 }
