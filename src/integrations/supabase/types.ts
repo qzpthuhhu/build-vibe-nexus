@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_providers: {
+        Row: {
+          api_key_ref: string
+          base_url_anthropic: string | null
+          base_url_openai: string | null
+          config: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_ref?: string
+          base_url_anthropic?: string | null
+          base_url_openai?: string | null
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_ref?: string
+          base_url_anthropic?: string | null
+          base_url_openai?: string | null
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           created_at: string
@@ -600,6 +639,7 @@ export type Database = {
           is_active: boolean
           priority: number
           provider: string
+          provider_id: string | null
           source_model: string
           target_model: string
           updated_at: string
@@ -611,6 +651,7 @@ export type Database = {
           is_active?: boolean
           priority?: number
           provider?: string
+          provider_id?: string | null
           source_model: string
           target_model: string
           updated_at?: string
@@ -622,11 +663,20 @@ export type Database = {
           is_active?: boolean
           priority?: number
           provider?: string
+          provider_id?: string | null
           source_model?: string
           target_model?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "model_mappings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "ai_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pending_engagement_notifications: {
         Row: {
