@@ -838,6 +838,9 @@ export default function AdminDashboard() {
           ))}
         </div>
       )}
+
+      {/* Providers Tab */}
+      {tab === 'providers' && <AdminProvidersPanel />}
     </div>
   );
 }
