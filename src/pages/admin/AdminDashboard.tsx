@@ -21,8 +21,9 @@ import { ensureHttpUrl } from '@/lib/url';
 import { sendTransactionalEmail, getSiteUrl } from '@/lib/email';
 import MediaGallery from '@/components/MediaGallery';
 import AdminReviewPanel from '@/components/admin/AdminReviewPanel';
+import AdminProvidersPanel from '@/components/admin/AdminProvidersPanel';
 
-type AdminTab = 'review' | 'users' | 'stats' | 'batch';
+type AdminTab = 'review' | 'users' | 'stats' | 'batch' | 'providers';
 
 interface BatchItem {
   url: string;
