@@ -192,8 +192,9 @@ Deno.serve(async (req) => {
 
   const latencyMs = Date.now() - startTime;
 
-  if (!upstreamResponse.ok && !isStream) {
+  if (!upstreamResponse.ok) {
     const errText = await upstreamResponse.text();
+    console.error("Upstream error:", upstreamResponse.status, errText);
     // Log failed request
     await supabaseAdmin.from("api_request_logs").insert({
       user_id: userId,
@@ -206,7 +207,7 @@ Deno.serve(async (req) => {
       completion_tokens: 0,
       total_tokens: promptTokens,
       latency_ms: latencyMs,
-      is_stream: false,
+      is_stream: isStream,
     });
     return new Response(errText, {
       status: upstreamResponse.status,
