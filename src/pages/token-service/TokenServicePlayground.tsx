@@ -120,7 +120,8 @@ export default function TokenServicePlayground() {
           </div>
 
           <div className="border-t border-border/50 p-4">
-            <div className="flex gap-3">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 relative">
               <Textarea
                 placeholder={t('token_service.playground_input_placeholder')}
                 value={input}
