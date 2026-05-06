@@ -95,7 +95,7 @@ export default function TokenServiceDocs() {
               <CodeBlock t={t} language="bash" code={`curl https://api.vbcodingshow.com/v1/messages \\
   -H "Authorization: Bearer vb-sk-your-api-key" \\
   -H "Content-Type: application/json" \\
-  -d '{"model": "claude-sonnet-4-6", "max_tokens": 1024, "messages": [{"role": "user", "content": "Hello!"}]}'`} />
+  -d '{"model": "claude-sonnet-4.6", "max_tokens": 1024, "messages": [{"role": "user", "content": "Hello!"}]}'`} />
             </section>
 
             <section id="claude-api">
@@ -112,7 +112,7 @@ client = anthropic.Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-4.6",
     max_tokens=1024,
     system="You are a helpful assistant.",
     messages=[
@@ -130,7 +130,7 @@ const client = new Anthropic({
 });
 
 const message = await client.messages.create({
-  model: 'claude-sonnet-4-6',
+  model: 'claude-sonnet-4.6',
   max_tokens: 1024,
   messages: [
     { role: 'user', content: 'Hello, Claude!' }
@@ -178,7 +178,7 @@ print(response.choices[0].message.content)`} />
               </p>
               <CodeBlock t={t} language="python" code={`# Claude streaming
 with client.messages.stream(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-4.6",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Write a haiku."}]
 ) as stream:
@@ -199,9 +199,9 @@ with client.messages.stream(
                   </thead>
                   <tbody className="text-muted-foreground">
                     {[
-                      ['claude-opus-4-7', 'Claude', '200K'],
-                      ['claude-sonnet-4-6', 'Claude', '200K'],
-                      ['claude-haiku-4-5', 'Claude', '200K'],
+                      ['claude-opus-4.7', 'Claude', '200K'],
+                      ['claude-sonnet-4.6', 'Claude', '200K'],
+                      ['claude-haiku-4.5', 'Claude', '200K'],
                       ['gpt-5.5', 'OpenAI', '200K'],
                       ['gpt-5.2', 'OpenAI', '128K'],
                       ['gpt-5.4-mini', 'OpenAI', '128K'],

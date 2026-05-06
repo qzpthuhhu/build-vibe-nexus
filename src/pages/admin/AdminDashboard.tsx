@@ -22,8 +22,9 @@ import { sendTransactionalEmail, getSiteUrl } from '@/lib/email';
 import MediaGallery from '@/components/MediaGallery';
 import AdminReviewPanel from '@/components/admin/AdminReviewPanel';
 import AdminProvidersPanel from '@/components/admin/AdminProvidersPanel';
+import AdminOrdersPanel from '@/components/admin/AdminOrdersPanel';
 
-type AdminTab = 'review' | 'users' | 'stats' | 'batch' | 'providers';
+type AdminTab = 'review' | 'users' | 'stats' | 'batch' | 'providers' | 'orders';
 
 interface BatchItem {
   url: string;
@@ -472,6 +473,7 @@ export default function AdminDashboard() {
           { key: 'users' as AdminTab, label: '用户管理', icon: Users },
           { key: 'stats' as AdminTab, label: '内容统计', icon: BarChart3 },
           { key: 'providers' as AdminTab, label: '服务商管理', icon: Globe },
+          { key: 'orders' as AdminTab, label: 'Token 订单', icon: ListChecks },
         ]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -841,6 +843,7 @@ export default function AdminDashboard() {
 
       {/* Providers Tab */}
       {tab === 'providers' && <AdminProvidersPanel />}
+      {tab === 'orders' && <AdminOrdersPanel />}
     </div>
   );
 }

@@ -8,12 +8,6 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, A
 import { Activity, Coins, Key, Zap, TrendingUp, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const usageData = Array.from({ length: 14 }, (_, i) => ({
-  date: new Date(Date.now() - (13 - i) * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-  tokens: Math.floor(Math.random() * 50000 + 10000),
-  requests: Math.floor(Math.random() * 200 + 50),
-}));
-
 const StatCard = ({ icon: Icon, label, value, sub, color }: { icon: any; label: string; value: string; sub?: string; color: string }) => (
   <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
     <CardContent className="p-5">
@@ -31,20 +25,71 @@ const StatCard = ({ icon: Icon, label, value, sub, color }: { icon: any; label: 
   </Card>
 );
 
+interface DayData { date: string; tokens: number; requests: number; }
+interface LogRow { id: string; model_requested: string; total_tokens: number; status_code: number; latency_ms: number; created_at: string; is_stream: boolean; }
+
 export default function TokenServiceDashboard() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [balance, setBalance] = useState<{ total_balance: number; used_balance: number } | null>(null);
   const [keyCount, setKeyCount] = useState(0);
+  const [todayRequests, setTodayRequests] = useState(0);
+  const [avgLatency, setAvgLatency] = useState(0);
+  const [usageData, setUsageData] = useState<DayData[]>([]);
+  const [recentLogs, setRecentLogs] = useState<LogRow[]>([]);
 
   useEffect(() => {
     if (!user) return;
+
+    // Balance
     supabase.from('token_balances').select('total_balance, used_balance').eq('user_id', user.id).maybeSingle().then(({ data }) => {
       setBalance(data as any);
     });
+
+    // Key count
     supabase.from('api_keys').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'active').then(({ count }) => {
       setKeyCount(count || 0);
     });
+
+    // Recent logs (last 20)
+    supabase.from('api_request_logs').select('id, model_requested, total_tokens, status_code, latency_ms, created_at, is_stream')
+      .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20)
+      .then(({ data }) => {
+        const rows = (data || []) as LogRow[];
+        setRecentLogs(rows);
+
+        // Today stats
+        const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+        const todayRows = rows.filter(r => new Date(r.created_at) >= todayStart);
+        setTodayRequests(todayRows.length);
+        if (todayRows.length > 0) {
+          setAvgLatency(Math.round(todayRows.reduce((s, r) => s + (r.latency_ms || 0), 0) / todayRows.length));
+        }
+      });
+
+    // Usage chart: last 14 days aggregation
+    const fourteenDaysAgo = new Date(Date.now() - 13 * 86400000);
+    fourteenDaysAgo.setHours(0, 0, 0, 0);
+    supabase.from('api_request_logs').select('total_tokens, created_at')
+      .eq('user_id', user.id).gte('created_at', fourteenDaysAgo.toISOString())
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        const dayMap: Record<string, DayData> = {};
+        for (let i = 0; i < 14; i++) {
+          const d = new Date(Date.now() - (13 - i) * 86400000);
+          const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          dayMap[key] = { date: key, tokens: 0, requests: 0 };
+        }
+        for (const row of (data || []) as any[]) {
+          const d = new Date(row.created_at);
+          const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          if (dayMap[key]) {
+            dayMap[key].tokens += row.total_tokens || 0;
+            dayMap[key].requests += 1;
+          }
+        }
+        setUsageData(Object.values(dayMap));
+      });
   }, [user]);
 
   if (!user) {
@@ -77,9 +122,9 @@ export default function TokenServiceDashboard() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard icon={Coins} label={t('token_service.dashboard_token_balance')} value={remaining.toLocaleString()} sub={t('token_service.dashboard_remaining')} color="bg-purple-500/10 text-purple-400" />
-          <StatCard icon={Activity} label={t('token_service.dashboard_requests_today')} value="—" sub={t('token_service.dashboard_today')} color="bg-blue-500/10 text-blue-400" />
+          <StatCard icon={Activity} label={t('token_service.dashboard_requests_today')} value={String(todayRequests)} sub={t('token_service.dashboard_today')} color="bg-blue-500/10 text-blue-400" />
           <StatCard icon={Key} label={t('token_service.dashboard_active_keys')} value={String(keyCount)} color="bg-cyan-500/10 text-cyan-400" />
-          <StatCard icon={Clock} label={t('token_service.dashboard_avg_latency')} value="—" sub="ms" color="bg-green-500/10 text-green-400" />
+          <StatCard icon={Clock} label={t('token_service.dashboard_avg_latency')} value={avgLatency ? String(avgLatency) : '—'} sub="ms" color="bg-green-500/10 text-green-400" />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
@@ -131,9 +176,39 @@ export default function TokenServiceDashboard() {
             <CardTitle className="text-base font-medium">{t('token_service.dashboard_recent_requests')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-sm text-muted-foreground text-center py-8">
-              {t('token_service.dashboard_no_requests')}
-            </div>
+            {recentLogs.length === 0 ? (
+              <div className="text-sm text-muted-foreground text-center py-8">
+                {t('token_service.dashboard_no_requests')}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50 text-muted-foreground">
+                      <th className="text-left py-2 px-3 font-medium">模型</th>
+                      <th className="text-left py-2 px-3 font-medium">Tokens</th>
+                      <th className="text-left py-2 px-3 font-medium">状态</th>
+                      <th className="text-left py-2 px-3 font-medium">延迟</th>
+                      <th className="text-left py-2 px-3 font-medium">时间</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentLogs.map((log) => (
+                      <tr key={log.id} className="border-b border-border/30">
+                        <td className="py-2 px-3 font-mono text-purple-400 text-xs">{log.model_requested}</td>
+                        <td className="py-2 px-3">{log.total_tokens.toLocaleString()}</td>
+                        <td className="py-2 px-3">
+                          <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${log.status_code === 200 ? 'bg-green-400' : 'bg-red-400'}`} />
+                          {log.status_code}
+                        </td>
+                        <td className="py-2 px-3">{log.latency_ms}ms</td>
+                        <td className="py-2 px-3 text-muted-foreground">{new Date(log.created_at).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
