@@ -57,7 +57,7 @@ export default function TokenServicePlayground() {
             <h1 className="text-2xl font-bold text-foreground">{t('token_service.playground_title')}</h1>
             <p className="text-sm text-muted-foreground">{t('token_service.playground_subtitle')}</p>
           </div>
-          <Select value={model} onValueChange={setModel}>
+         <Select value={model} onValueChange={setModel}>
             <SelectTrigger className="w-64 bg-card border-border/50">
               <SelectValue />
             </SelectTrigger>
@@ -70,6 +70,10 @@ export default function TokenServicePlayground() {
               <SelectItem value="gpt-5.4-mini">GPT-5.4 Mini</SelectItem>
             </SelectContent>
           </Select>
+          <Badge variant="secondary" className="text-xs gap-1 ml-2">
+            <Hash className="h-3 w-3" />
+            {totalTokens} tokens
+          </Badge>
         </div>
 
         <div className="border-border/50 bg-card/50 backdrop-blur-sm min-h-[500px] flex flex-col rounded-xl border">
