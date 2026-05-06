@@ -287,7 +287,7 @@ Deno.serve(async (req) => {
             cost_cents: billedTokens,
           });
 
-          await supabaseAdmin.rpc("", {}).catch(() => {});
+          // Update api_keys stats
           // Update api_keys stats
           const { data: currentKey } = await supabaseAdmin
             .from("api_keys")
