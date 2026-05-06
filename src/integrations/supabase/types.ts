@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          rpm_limit: number | null
+          status: string
+          total_requests: number
+          total_tokens_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name?: string
+          rpm_limit?: number | null
+          status?: string
+          total_requests?: number
+          total_tokens_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          rpm_limit?: number | null
+          status?: string
+          total_requests?: number
+          total_tokens_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      api_request_logs: {
+        Row: {
+          api_key_id: string | null
+          completion_tokens: number
+          cost_cents: number | null
+          created_at: string
+          id: string
+          is_stream: boolean | null
+          latency_ms: number | null
+          model_actual: string | null
+          model_requested: string
+          prompt_tokens: number
+          provider: string | null
+          status_code: number | null
+          total_tokens: number
+          user_id: string
+        }
+        Insert: {
+          api_key_id?: string | null
+          completion_tokens?: number
+          cost_cents?: number | null
+          created_at?: string
+          id?: string
+          is_stream?: boolean | null
+          latency_ms?: number | null
+          model_actual?: string | null
+          model_requested: string
+          prompt_tokens?: number
+          provider?: string | null
+          status_code?: number | null
+          total_tokens?: number
+          user_id: string
+        }
+        Update: {
+          api_key_id?: string | null
+          completion_tokens?: number
+          cost_cents?: number | null
+          created_at?: string
+          id?: string
+          is_stream?: boolean | null
+          latency_ms?: number | null
+          model_actual?: string | null
+          model_requested?: string
+          prompt_tokens?: number
+          provider?: string | null
+          status_code?: number | null
+          total_tokens?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_request_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_contact_info: {
         Row: {
           app_id: string
@@ -488,6 +592,42 @@ export type Database = {
           },
         ]
       }
+      model_mappings: {
+        Row: {
+          config: Json | null
+          created_at: string
+          id: string
+          is_active: boolean
+          priority: number
+          provider: string
+          source_model: string
+          target_model: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority?: number
+          provider?: string
+          source_model: string
+          target_model: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority?: number
+          provider?: string
+          source_model?: string
+          target_model?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pending_engagement_notifications: {
         Row: {
           actor_user_id: string
@@ -580,6 +720,131 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string
+        }
+        Relationships: []
+      }
+      token_balances: {
+        Row: {
+          created_at: string
+          id: string
+          total_balance: number
+          updated_at: string
+          used_balance: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          total_balance?: number
+          updated_at?: string
+          used_balance?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          total_balance?: number
+          updated_at?: string
+          used_balance?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      token_orders: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          package_id: string | null
+          payment_method: string | null
+          payment_ref: string | null
+          status: string
+          token_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          package_id?: string | null
+          payment_method?: string | null
+          payment_ref?: string | null
+          status?: string
+          token_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          package_id?: string | null
+          payment_method?: string | null
+          payment_ref?: string | null
+          status?: string
+          token_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_orders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "token_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      token_packages: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean
+          max_context: number
+          name: string
+          price_cents: number
+          rpm_limit: number
+          slug: string
+          sort_order: number
+          token_amount: number
+          tpm_limit: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          max_context?: number
+          name: string
+          price_cents?: number
+          rpm_limit?: number
+          slug: string
+          sort_order?: number
+          token_amount?: number
+          tpm_limit?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          max_context?: number
+          name?: string
+          price_cents?: number
+          rpm_limit?: number
+          slug?: string
+          sort_order?: number
+          token_amount?: number
+          tpm_limit?: number
+          updated_at?: string
         }
         Relationships: []
       }
