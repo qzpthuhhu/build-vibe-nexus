@@ -1,60 +1,48 @@
 
-目标：把当前卡住的邮箱域名状态恢复为可用，并确认注册邮件与站内通知邮件都能正常发送。
+# Token 服务平台 — 分阶段实施计划
 
-1. 先确认问题范围
-- 当前更像是“邮箱域名配置状态卡住”，不是前端代码写错。
-- 代码里已经统一使用发信子域 `notify.vbcodingshow.com`，展示域名使用 `vbcodingshow.com`，这套配置本身是对的。
-- 你在 DNSChecker 上已经看到 NS 全球生效，所以问题大概率出在 Lovable Cloud 的域名状态机/配置同步，而不是注册商 DNS 记录。
+这是一个大型功能，将分多轮实施。本轮（第一轮）聚焦核心页面和数据库基础。
 
-2. 优先做无损恢复
-- 在 Cloud → Emails → Manage workspace domains 里，对 `vbcodingshow.com` 再执行一次重新校验/重新初始化。
-- 我会同步检查项目当前绑定的邮箱域名状态，确认系统到底把它识别成：
-  - 仍在等待验证
-  - 正在配置但卡住
-  - 已配置但没有切换到 Active
-- 如果只是状态没刷新，这一步通常能恢复，不需要改 DNS。
+## 第一轮：核心页面 + 数据库
 
-3. 如果还是卡住，执行“删除并重新添加根域名”
-- 删除的是邮箱配置里的根域名 `vbcodingshow.com`，不是去删注册商那边的 DNS。
-- 然后重新添加同一个根域名，让系统重新生成并接管 `notify.vbcodingshow.com` 这条发信子域。
-- 你的注册商侧 NS 记录如果本来就是正确的，通常不需要改；重点是让后台重新走一遍域名接入流程。
+### 1. 数据库迁移
+新建以下表：
+- **api_keys** — 用户的 API Key（存储 hash、名称、状态、限速、用量）
+- **token_balances** — 用户 Token 余额
+- **api_request_logs** — 请求日志（prompt tokens、completion tokens、延迟、模型、成本）
+- **token_packages** — 套餐定义（Free/Pro/Team/Enterprise）
+- **token_orders** — 充值/购买订单
+- **model_mappings** — 模型映射配置（claude-3-opus → minimax-text-01）
 
-4. 域名恢复后检查邮件基础设施
-- 确认后台邮件队列、发送日志、退订/抑制列表、定时处理任务都已就绪。
-- 如果域名状态恢复了，但邮件仍不发，就继续排查：
-  - 邮件是否成功入队
-  - 队列处理任务是否在运行
-  - 是否有失败/退信/抑制记录
-  - 身份验证邮件与应用通知邮件是否都在使用同一套发信域名
+### 2. 前端页面（6个新页面）
+- **/token-service** — Hero 首页（高转化率着陆页）
+- **/token-service/pricing** — SaaS 定价页（4档套餐）
+- **/token-service/docs** — API 文档中心（Claude/OpenAI 兼容说明、代码示例）
+- **/token-service/dashboard** — 用户仪表盘（Token 趋势图、请求统计、余额）
+- **/token-service/api-keys** — API Key 管理（创建/删除/查看用量）
+- **/token-service/playground** — 在线 Playground
 
-5. 端到端验证
-- 测试注册新账号，确认验证邮件能收到。
-- 测试站内业务邮件，例如提交作品/审核通知/欢迎邮件。
-- 如果测试环境正常、正式环境异常，再补做一次重新发布，确保线上也完成邮件处理任务的配置。
+### 3. 导航更新
+- 顶部导航新增 "Token Service" 入口
+- Token Service 区域有独立子导航
 
-预期结果
-- Cloud → Emails 不再停留在 “Setting up / Verifying your domain”
-- 域名状态变为 Active
-- 注册验证邮件、密码重置邮件、欢迎邮件、审核通知邮件都能正常发送
-- 后台发送日志里能看到 pending → sent 的完整流转
+### 4. 设计系统
+- 深色主题，紫蓝渐变
+- 毛玻璃卡片
+- 科技感动画
+- 与现有 VibeDir 风格统一但有独立视觉标识
 
-技术细节
-- 现有代码里，认证邮件钩子与应用邮件发送函数都已经写死为：
-  - 发信子域：`notify.vbcodingshow.com`
-  - From 展示域：`vbcodingshow.com`
-- 相关实现已经存在，不需要重做整套邮件功能，只需要恢复邮箱域名配置状态并验证后台队列：
-  - `supabase/functions/auth-email-hook/index.ts`
-  - `supabase/functions/send-transactional-email/index.ts`
-  - `supabase/functions/process-email-queue/index.ts`
-  - `supabase/migrations/20260331133409_email_infra.sql`
-- 也就是说，当前最可能的修复路径不是改代码，而是：
-  1) 重新触发邮箱域名配置同步
-  2) 必要时删除并重新添加邮箱域名
-  3) 再检查后台队列和日志
+## 后续轮次（本轮不实施）
+- Edge Function: Claude/OpenAI 兼容 API 代理
+- 模型管理后台
+- 计费系统集成
+- 邀请返佣系统
+- Webhook/通知系统
+- Redis 缓存 + 限流
 
-实施顺序
-1. 检查当前邮箱域名状态与项目绑定关系
-2. 触发一次重新校验/重新初始化
-3. 若仍卡住，删除并重新添加 `vbcodingshow.com`
-4. 检查后台邮件基础设施是否完整
-5. 端到端发送测试并确认结果
+## 技术细节
+- React + Vite + TypeScript + Tailwind（非 Next.js，适配现有技术栈）
+- Supabase 数据库 + RLS
+- Recharts 图表
+- react-syntax-highlighter 代码高亮
+- 所有页面响应式设计
