@@ -120,16 +120,22 @@ export default function TokenServicePlayground() {
           </div>
 
           <div className="border-t border-border/50 p-4">
-          <div className="flex gap-3 items-end">
-            <div className="flex-1 relative">
-              <Textarea
-                placeholder={t('token_service.playground_input_placeholder')}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                className="resize-none bg-background border-border/50 min-h-[44px] max-h-32"
-                rows={1}
-              />
+            <div className="flex gap-3 items-end">
+              <div className="flex-1 space-y-1">
+                <Textarea
+                  placeholder={t('token_service.playground_input_placeholder')}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                  className="resize-none bg-background border-border/50 min-h-[44px] max-h-32"
+                  rows={1}
+                />
+                {input.length > 0 && (
+                  <div className="text-[10px] text-muted-foreground px-1">
+                    <Hash className="h-3 w-3 inline mr-0.5" />{inputTokens} tokens (cl100k_base)
+                  </div>
+                )}
+              </div>
               <Button
                 onClick={sendMessage}
                 disabled={loading || !input.trim()}
@@ -143,5 +149,7 @@ export default function TokenServicePlayground() {
         </div>
       </div>
     </div>
+  );
+}
   );
 }
