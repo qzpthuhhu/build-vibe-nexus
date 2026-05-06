@@ -32,18 +32,18 @@ export default function TokenServicePlayground() {
 
   const sendMessage = () => {
     if (!input.trim()) return;
-    const userMsg: Message = { role: 'user', content: input };
+    const tokens = countTokens(input);
+    const userMsg: Message = { role: 'user', content: input, tokens };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
     setTimeout(() => {
+      const responseText = `${t('token_service.playground_simulated', { model })} "${userMsg.content}"`;
+      const responseTokens = countTokens(responseText);
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          content: `${t('token_service.playground_simulated', { model })} "${userMsg.content}"`,
-        },
+        { role: 'assistant', content: responseText, tokens: responseTokens },
       ]);
       setLoading(false);
     }, 1500);
