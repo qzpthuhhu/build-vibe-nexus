@@ -1,87 +1,90 @@
-## 概述
 
-新增管理员专属的「服务商 & 模型映射管理」功能，并集成 Token 计数技术。对外按 Token 用量收费（而非请求次数），使用 `js-tiktoken`（纯 JS，兼容 Deno Edge Function）进行精确计数。
+# 核心上线待办实施计划
 
----
+## 🔴 任务 1：API 代理 Edge Function（最高优先级）
 
-## MiniMax 国内平台接入信息
+创建 `supabase/functions/ai-proxy/index.ts`，这是整个 Token 服务的核心。
 
-- **Anthropic 兼容端点**: `https://api.minimaxi.com/anthropic`
-- **OpenAI 兼容端点**: `https://api.minimaxi.com/v1`
+**功能流程：**
 
-## 模型映射方案
+1. **认证**：从 `Authorization: Bearer vb-sk-xxx` 提取 API Key，SHA-256 哈希后查 `api_keys` 表验证
+2. **路由判断**：
+   - 请求路径 `/ai-proxy/v1/chat/completions` → OpenAI 格式，转发到 `api.minimaxi.com/v1`
+   - 请求路径 `/ai-proxy/v1/messages` → Anthropic 格式，转发到 `api.minimaxi.com/anthropic`
+3. **模型映射**：从 `model_mappings` 表查找 `source_model` → `target_model`，替换请求体中的 model 字段
+4. **余额检查**：查 `token_balances` 确认用户余额充足，不足返回 402
+5. **速率限制**（任务4）：基于滑动窗口检查 RPM/TPM
+6. **转发请求**：用 `MINIMAX_API_KEY` 向 MiniMax 发起请求
+7. **流式支持**：支持 `stream: true`，逐块透传 SSE
+8. **Token 计数**：使用 `js-tiktoken` (cl100k_base) 对 prompt 和 completion 分别计数
+9. **扣费 & 日志**：
+   - 扣减 `token_balances.used_balance`（乘以 `cost_multiplier`）
+   - 写入 `api_request_logs`（含 prompt_tokens、completion_tokens、latency_ms 等）
+   - 更新 `api_keys` 的 `total_requests` 和 `total_tokens_used`
 
-
-| 对外模型名             | MiniMax 实际模型           | 定位         |
-| ----------------- | ---------------------- | ---------- |
-| Claude Opus 4.7   | MiniMax-M2.7           | 旗舰推理 60tps |
-| Claude Sonnet 4.6 | MiniMax-M2.7-highspeed | 快速版 100tps |
-| Claude Haiku 4.5  | MiniMax-M2.5           | 高性价比       |
-| GPT-5.5           | MiniMax-M2.7           | 旗舰推理       |
-| GPT-5.2           | MiniMax-M2.7-highspeed | 快速版        |
-| GPT-5.4 Mini      | MiniMax-M2.5           | 轻量版        |
-
-
----
-
-## Token 计数方案
-
-**技术选型**: `js-tiktoken`（纯 JavaScript 实现的 OpenAI BPE tokenizer）
-
-- 支持 Deno / Edge Runtime（原版 tiktoken WASM 不支持 Deno）
-- 使用 `cl100k_base` 编码（GPT-4 / Claude 通用标准）
-- 在 Edge Function 代理层中，对请求的 prompt 和返回的 completion 分别计数
-- 计数结果写入 `api_request_logs` 的 `prompt_tokens` / `completion_tokens` / `total_tokens` 字段
-
-**计费逻辑**:
-
-- 用户余额以 Token 为单位（`token_balances` 表已有 `total_balance` / `used_balance`）
-- 每次请求扣减实际消耗的 Token 数
-- 不同模型可设置不同的 Token 单价倍率（通过 `model_mappings.config` JSONB 存储 `cost_multiplier`）
+**配置：** 在 `supabase/config.toml` 添加 `verify_jwt = false`（因为使用自定义 API Key 认证）
 
 ---
 
-## 实施内容
+## 🟡 任务 2：Dashboard 真实数据
 
-### 1. 数据库：新建 `ai_providers` 表
+更新 `TokenServiceDashboard.tsx`：
 
-- `name`、`slug`、`base_url_openai`、`base_url_anthropic`
-- `api_key_ref`（Secrets 中的密钥名称引用，如 "MINIMAX_API_KEY"）
-- `is_active`、`config`（JSONB 扩展）
-- RLS：仅管理员可读写
-
-### 2. 更新 `model_mappings` 表
-
-- 添加 `provider_id`（关联 ai_providers）
-- 在 `config` JSONB 中存储 `cost_multiplier`（Token 单价倍率）
-
-### 3. 存储 MiniMax API Key
-
-使用 Secrets 工具添加 `MINIMAX_API_KEY`
-
-### 4. 预填默认数据
-
-- 插入 MiniMax 供应商记录（两个端点 URL）
-- 插入 6 条模型映射 + 各自的 cost_multiplier
-
-### 5. 管理员页面（Admin 新增 Tab）
-
-在 `/admin` 页面新增 `providers` Tab：
-
-- **服务商管理**：查看/编辑/启用停用供应商
-- **API Key 状态**：显示是否已配置（掩码）
-- **模型映射表格**：可视化管理映射关系，含 Token 单价倍率编辑
-- 中英文多语言支持
-
-### 6. 安装 js-tiktoken
-
-- 前端项目：`bun add js-tiktoken`（供 Playground 前端预估 Token 数）
-- Edge Function：通过 `npm:js-tiktoken` 导入（Deno 兼容）
+- 替换 mock `usageData`，改为从 `api_request_logs` 按天聚合查询
+- "今日请求数"从 `api_request_logs` 的 `created_at` 过滤当天记录
+- "平均延迟"从 `api_request_logs.latency_ms` 计算
+- "最近请求"表格：展示最近 20 条日志（模型、Token 数、状态码、时间）
 
 ---
 
-## 技术要点
+## 🟡 任务 3：Token 充值购买流程
 
-- API Key 不进数据库，仅通过 Secrets 管理；`ai_providers.api_key_ref` 存储密钥名
-- `js-tiktoken` 使用 `cl100k_base` 编码，这是 GPT-4 / Claude 系列的标准 tokenizer
-- 扩展性：新增供应商只需在 `ai_providers` 插入记录 + 添加对应 Secret
+**数据库：**
+- `token_packages` 表已存在，需要插入实际套餐数据（免费体验 / Pro / Team，价格用人民币分）
+
+**前端：**
+- 更新 `TokenServicePricing.tsx`，从 `token_packages` 表动态读取套餐
+- 添加"购买"按钮 → 创建 `token_orders` 记录（status=pending）
+- 显示订单历史
+
+**支付：** 由于中国区支付集成（微信/支付宝）不在 Lovable 内置支付范围内，先实现：
+- 管理员手动确认充值的流程：管理员在后台看到 pending 订单 → 确认后系统自动增加 `token_balances`
+- 预留支付回调接口，后期接入实际支付
+
+---
+
+## 🟡 任务 4：速率限制（RPM/TPM）
+
+在 AI Proxy Edge Function 内实现（不单独做后端服务）：
+
+- **RPM（每分钟请求数）**：用 `api_request_logs` 查询最近 60 秒内该 API Key 的请求数
+- **TPM（每分钟 Token 数）**：查询最近 60 秒内该 API Key 的 `total_tokens` 总和
+- 限制值从 `token_packages` 表的 `rpm_limit` / `tpm_limit` 获取（通过用户已购套餐关联）
+- 超限返回 `429 Too Many Requests`，响应头包含 `X-RateLimit-*` 信息
+
+---
+
+## 技术细节
+
+### Edge Function 依赖
+```json
+// supabase/functions/ai-proxy/deno.json
+{
+  "imports": {
+    "js-tiktoken": "npm:js-tiktoken@1.0.15"
+  }
+}
+```
+
+### 数据库变更
+- 新增 `token_packages` 默认套餐数据（INSERT）
+- 可能需要给 `api_request_logs` 添加索引以支持速率限制查询
+
+### 实施顺序
+1. API Proxy Edge Function（含速率限制）
+2. 插入默认套餐数据
+3. Dashboard 真实数据
+4. 充值购买流程前端
+
+### Playground 更新
+将 Playground 的 mock `setTimeout` 替换为实际调用 AI Proxy Edge Function，实现真实对话。
