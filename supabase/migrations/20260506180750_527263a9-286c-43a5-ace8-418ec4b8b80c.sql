@@ -1,0 +1,2 @@
+UPDATE public.model_mappings SET target_model = 'MiniMax-M2.7' WHERE source_model IN ('claude-sonnet-4.6', 'gpt-5.2') AND target_model = 'MiniMax-M2.7-highspeed';
+UPDATE public.model_mappings SET target_model = 'MiniMax-M2.5' WHERE source_model IN ('claude-haiku-4.5', 'gpt-5.4-mini') AND target_model = 'MiniMax-M2.5';
