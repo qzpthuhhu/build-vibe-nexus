@@ -1,13 +1,23 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Send, Bot, User, Loader2, Hash } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getEncoding } from 'js-tiktoken';
+
+const enc = getEncoding('cl100k_base');
+
+function countTokens(text: string): number {
+  if (!text) return 0;
+  return enc.encode(text).length;
+}
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  tokens?: number;
 }
 
 export default function TokenServicePlayground() {
@@ -16,6 +26,9 @@ export default function TokenServicePlayground() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const inputTokens = useMemo(() => countTokens(input), [input]);
+  const totalTokens = useMemo(() => messages.reduce((sum, m) => sum + (m.tokens || 0), 0), [messages]);
 
   const sendMessage = () => {
     if (!input.trim()) return;
