@@ -924,6 +924,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      deduct_tokens: {
+        Args: { _amount: number; _user_id: string }
+        Returns: number
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
