@@ -96,6 +96,9 @@ export default function TokenServicePlayground() {
                     : 'bg-card border border-border/50 text-foreground'
                 }`}>
                   {msg.content}
+                  {msg.tokens !== undefined && (
+                    <div className="text-[10px] text-muted-foreground mt-1 opacity-60">{msg.tokens} tokens</div>
+                  )}
                 </div>
                 {msg.role === 'user' && (
                   <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
