@@ -1,13 +1,23 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Send, Bot, User, Loader2, Hash } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getEncoding } from 'js-tiktoken';
+
+const enc = getEncoding('cl100k_base');
+
+function countTokens(text: string): number {
+  if (!text) return 0;
+  return enc.encode(text).length;
+}
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  tokens?: number;
 }
 
 export default function TokenServicePlayground() {
@@ -17,20 +27,23 @@ export default function TokenServicePlayground() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const inputTokens = useMemo(() => countTokens(input), [input]);
+  const totalTokens = useMemo(() => messages.reduce((sum, m) => sum + (m.tokens || 0), 0), [messages]);
+
   const sendMessage = () => {
     if (!input.trim()) return;
-    const userMsg: Message = { role: 'user', content: input };
+    const tokens = countTokens(input);
+    const userMsg: Message = { role: 'user', content: input, tokens };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
     setTimeout(() => {
+      const responseText = `${t('token_service.playground_simulated', { model })} "${userMsg.content}"`;
+      const responseTokens = countTokens(responseText);
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          content: `${t('token_service.playground_simulated', { model })} "${userMsg.content}"`,
-        },
+        { role: 'assistant', content: responseText, tokens: responseTokens },
       ]);
       setLoading(false);
     }, 1500);
@@ -44,7 +57,7 @@ export default function TokenServicePlayground() {
             <h1 className="text-2xl font-bold text-foreground">{t('token_service.playground_title')}</h1>
             <p className="text-sm text-muted-foreground">{t('token_service.playground_subtitle')}</p>
           </div>
-          <Select value={model} onValueChange={setModel}>
+         <Select value={model} onValueChange={setModel}>
             <SelectTrigger className="w-64 bg-card border-border/50">
               <SelectValue />
             </SelectTrigger>
@@ -57,6 +70,10 @@ export default function TokenServicePlayground() {
               <SelectItem value="gpt-5.4-mini">GPT-5.4 Mini</SelectItem>
             </SelectContent>
           </Select>
+          <Badge variant="secondary" className="text-xs gap-1 ml-2">
+            <Hash className="h-3 w-3" />
+            {totalTokens} tokens
+          </Badge>
         </div>
 
         <div className="border-border/50 bg-card/50 backdrop-blur-sm min-h-[500px] flex flex-col rounded-xl border">
@@ -79,6 +96,9 @@ export default function TokenServicePlayground() {
                     : 'bg-card border border-border/50 text-foreground'
                 }`}>
                   {msg.content}
+                  {msg.tokens !== undefined && (
+                    <div className="text-[10px] text-muted-foreground mt-1 opacity-60">{msg.tokens} tokens</div>
+                  )}
                 </div>
                 {msg.role === 'user' && (
                   <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
@@ -100,15 +120,22 @@ export default function TokenServicePlayground() {
           </div>
 
           <div className="border-t border-border/50 p-4">
-            <div className="flex gap-3">
-              <Textarea
-                placeholder={t('token_service.playground_input_placeholder')}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                className="resize-none bg-background border-border/50 min-h-[44px] max-h-32"
-                rows={1}
-              />
+            <div className="flex gap-3 items-end">
+              <div className="flex-1 space-y-1">
+                <Textarea
+                  placeholder={t('token_service.playground_input_placeholder')}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                  className="resize-none bg-background border-border/50 min-h-[44px] max-h-32"
+                  rows={1}
+                />
+                {input.length > 0 && (
+                  <div className="text-[10px] text-muted-foreground px-1">
+                    <Hash className="h-3 w-3 inline mr-0.5" />{inputTokens} tokens (cl100k_base)
+                  </div>
+                )}
+              </div>
               <Button
                 onClick={sendMessage}
                 disabled={loading || !input.trim()}

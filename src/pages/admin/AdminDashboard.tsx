@@ -21,8 +21,9 @@ import { ensureHttpUrl } from '@/lib/url';
 import { sendTransactionalEmail, getSiteUrl } from '@/lib/email';
 import MediaGallery from '@/components/MediaGallery';
 import AdminReviewPanel from '@/components/admin/AdminReviewPanel';
+import AdminProvidersPanel from '@/components/admin/AdminProvidersPanel';
 
-type AdminTab = 'review' | 'users' | 'stats' | 'batch';
+type AdminTab = 'review' | 'users' | 'stats' | 'batch' | 'providers';
 
 interface BatchItem {
   url: string;
@@ -470,6 +471,7 @@ export default function AdminDashboard() {
           { key: 'batch' as AdminTab, label: '批量提交', icon: Upload },
           { key: 'users' as AdminTab, label: '用户管理', icon: Users },
           { key: 'stats' as AdminTab, label: '内容统计', icon: BarChart3 },
+          { key: 'providers' as AdminTab, label: '服务商管理', icon: Globe },
         ]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -836,6 +838,9 @@ export default function AdminDashboard() {
           ))}
         </div>
       )}
+
+      {/* Providers Tab */}
+      {tab === 'providers' && <AdminProvidersPanel />}
     </div>
   );
 }
