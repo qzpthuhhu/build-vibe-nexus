@@ -31,16 +31,15 @@ export default function Navbar() {
             <span className="text-lg font-bold tracking-tight text-gradient">VibeDir</span>
           </Link>
 
-          {/* Token Service sub-nav */}
           {isTokenService && (
             <div className="hidden md:flex items-center gap-1 ml-2">
               <span className="text-muted-foreground/40 mr-2">/</span>
               {[
-                { to: '/token-service', label: 'Token Service' },
-                { to: '/token-service/docs', label: 'Docs' },
-                { to: '/token-service/pricing', label: 'Pricing' },
-                { to: '/token-service/playground', label: 'Playground' },
-                { to: '/token-service/dashboard', label: 'Dashboard' },
+                { to: '/token-service', labelKey: 'token_service.nav_home' },
+                { to: '/token-service/docs', labelKey: 'token_service.nav_docs' },
+                { to: '/token-service/pricing', labelKey: 'token_service.nav_pricing' },
+                { to: '/token-service/playground', labelKey: 'token_service.nav_playground' },
+                { to: '/token-service/dashboard', labelKey: 'token_service.nav_dashboard' },
               ].map((item) => (
                 <Link key={item.to} to={item.to}>
                   <Button
@@ -52,7 +51,7 @@ export default function Navbar() {
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                   </Button>
                 </Link>
               ))}
@@ -79,7 +78,7 @@ export default function Navbar() {
           <Link to="/token-service">
             <Button variant="ghost" size="sm" className="gap-1.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10">
               <Zap className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Token Service</span>
+              <span className="hidden sm:inline">{t('token_service.nav_label')}</span>
             </Button>
           </Link>
 
@@ -119,7 +118,7 @@ export default function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/token-service/dashboard')}>
                     <Zap className="mr-2 h-4 w-4" />
-                    Token Dashboard
+                    {t('token_service.token_dashboard')}
                   </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate('/admin')}>

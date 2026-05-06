@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Copy, Trash2, Key, Check, Eye, EyeOff } from 'lucide-react';
+import { Plus, Copy, Trash2, Key, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface ApiKey {
   id: string;
@@ -35,6 +36,7 @@ async function hashKey(key: string): Promise<string> {
 
 export default function TokenServiceApiKeys() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [newKeyName, setNewKeyName] = useState('');
@@ -69,11 +71,10 @@ export default function TokenServiceApiKeys() {
     });
 
     if (error) {
-      toast.error('Failed to create key');
+      toast.error(t('token_service.api_keys_create_failed'));
       return;
     }
 
-    // Also init token balance if not exists
     await supabase.from('token_balances').upsert({
       user_id: user.id,
       total_balance: 10000,
@@ -82,12 +83,12 @@ export default function TokenServiceApiKeys() {
 
     setNewKeyValue(raw);
     fetchKeys();
-    toast.success('API key created');
+    toast.success(t('token_service.api_keys_created'));
   };
 
   const revokeKey = async (id: string) => {
     await supabase.from('api_keys').update({ status: 'revoked' }).eq('id', id);
-    toast.success('Key revoked');
+    toast.success(t('token_service.api_keys_revoked'));
     fetchKeys();
   };
 
@@ -101,8 +102,8 @@ export default function TokenServiceApiKeys() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h2 className="text-2xl font-bold text-foreground">Sign in to manage API keys</h2>
-          <Link to="/auth"><Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0">Sign In</Button></Link>
+          <h2 className="text-2xl font-bold text-foreground">{t('token_service.api_keys_sign_in_title')}</h2>
+          <Link to="/auth"><Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0">{t('token_service.dashboard_sign_in')}</Button></Link>
         </div>
       </div>
     );
@@ -113,25 +114,25 @@ export default function TokenServiceApiKeys() {
       <div className="container max-w-4xl">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">API Keys</h1>
-            <p className="text-sm text-muted-foreground">Manage your API keys for accessing the Token Service</p>
+            <h1 className="text-2xl font-bold text-foreground">{t('token_service.api_keys_title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('token_service.api_keys_subtitle')}</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setNewKeyValue(''); setNewKeyName(''); } }}>
             <DialogTrigger asChild>
               <Button className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-0">
-                <Plus className="h-4 w-4" /> Create Key
+                <Plus className="h-4 w-4" /> {t('token_service.api_keys_create')}
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
                 <DialogTitle className="text-foreground">
-                  {newKeyValue ? 'Your New API Key' : 'Create API Key'}
+                  {newKeyValue ? t('token_service.api_keys_new_title') : t('token_service.api_keys_create_title')}
                 </DialogTitle>
               </DialogHeader>
               {newKeyValue ? (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Copy this key now. You won't be able to see it again.
+                    {t('token_service.api_keys_copy_warning')}
                   </p>
                   <div className="flex gap-2">
                     <Input value={newKeyValue} readOnly className="font-mono text-xs bg-background" />
@@ -139,18 +140,18 @@ export default function TokenServiceApiKeys() {
                       {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <Button className="w-full" onClick={() => { setDialogOpen(false); setNewKeyValue(''); setNewKeyName(''); }}>Done</Button>
+                  <Button className="w-full" onClick={() => { setDialogOpen(false); setNewKeyValue(''); setNewKeyName(''); }}>{t('token_service.api_keys_done')}</Button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <Input
-                    placeholder="Key name (e.g., production, dev)"
+                    placeholder={t('token_service.api_keys_name_placeholder')}
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
                     className="bg-background"
                   />
                   <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0" onClick={createKey}>
-                    Generate Key
+                    {t('token_service.api_keys_generate')}
                   </Button>
                 </div>
               )}
@@ -158,15 +159,14 @@ export default function TokenServiceApiKeys() {
           </Dialog>
         </div>
 
-        {/* Keys list */}
         <div className="space-y-3">
           {loading ? (
-            <div className="text-center text-muted-foreground py-12">Loading...</div>
+            <div className="text-center text-muted-foreground py-12">{t('token_service.api_keys_loading')}</div>
           ) : keys.length === 0 ? (
             <Card className="border-border/50 bg-card/50">
               <CardContent className="py-12 text-center">
                 <Key className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-                <p className="text-muted-foreground">No API keys yet. Create one to get started.</p>
+                <p className="text-muted-foreground">{t('token_service.api_keys_empty')}</p>
               </CardContent>
             </Card>
           ) : (
@@ -182,8 +182,8 @@ export default function TokenServiceApiKeys() {
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="text-right hidden sm:block">
-                      <p className="text-xs text-muted-foreground">{k.total_requests.toLocaleString()} requests</p>
-                      <p className="text-xs text-muted-foreground">{k.total_tokens_used.toLocaleString()} tokens</p>
+                      <p className="text-xs text-muted-foreground">{k.total_requests.toLocaleString()} {t('token_service.api_keys_requests')}</p>
+                      <p className="text-xs text-muted-foreground">{k.total_tokens_used.toLocaleString()} {t('token_service.api_keys_tokens')}</p>
                     </div>
                     <div className="text-xs text-muted-foreground hidden md:block">
                       {new Date(k.created_at).toLocaleDateString()}

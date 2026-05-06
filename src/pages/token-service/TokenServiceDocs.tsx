@@ -1,19 +1,9 @@
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
-const sections = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'authentication', label: 'Authentication' },
-  { id: 'claude-api', label: 'Claude API (Messages)' },
-  { id: 'openai-api', label: 'OpenAI API (Chat)' },
-  { id: 'streaming', label: 'Streaming' },
-  { id: 'models', label: 'Models' },
-  { id: 'errors', label: 'Error Handling' },
-  { id: 'rate-limits', label: 'Rate Limits' },
-];
-
-const CodeBlock = ({ code, language = 'bash' }: { code: string; language?: string }) => {
+const CodeBlock = ({ code, language = 'bash', t }: { code: string; language?: string; t: (k: string) => string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -26,7 +16,7 @@ const CodeBlock = ({ code, language = 'bash' }: { code: string; language?: strin
         <span className="text-xs text-muted-foreground">{language}</span>
         <Button variant="ghost" size="sm" onClick={handleCopy} className="h-7 px-2 text-xs gap-1.5">
           {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? t('token_service.docs_copied') : t('token_service.docs_copy')}
         </Button>
       </div>
       <pre className="p-4 text-sm overflow-x-auto"><code className="text-muted-foreground">{code}</code></pre>
@@ -35,7 +25,27 @@ const CodeBlock = ({ code, language = 'bash' }: { code: string; language?: strin
 };
 
 export default function TokenServiceDocs() {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState('overview');
+
+  const sections = [
+    { id: 'overview', label: t('token_service.docs_overview') },
+    { id: 'authentication', label: t('token_service.docs_auth') },
+    { id: 'claude-api', label: t('token_service.docs_claude_api') },
+    { id: 'openai-api', label: t('token_service.docs_openai_api') },
+    { id: 'streaming', label: t('token_service.docs_streaming') },
+    { id: 'models', label: t('token_service.docs_models') },
+    { id: 'errors', label: t('token_service.docs_errors') },
+    { id: 'rate-limits', label: t('token_service.docs_rate_limits') },
+  ];
+
+  const errorCodes: [string, string][] = [
+    ['401', t('token_service.docs_error_401')],
+    ['429', t('token_service.docs_error_429')],
+    ['402', t('token_service.docs_error_402')],
+    ['500', t('token_service.docs_error_500')],
+    ['503', t('token_service.docs_error_503')],
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,7 +53,7 @@ export default function TokenServiceDocs() {
         <div className="flex gap-8">
           {/* Sidebar */}
           <nav className="hidden lg:block w-56 shrink-0 sticky top-20 self-start">
-            <h3 className="text-sm font-semibold text-foreground mb-4">API Reference</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">{t('token_service.docs_api_ref')}</h3>
             <ul className="space-y-1">
               {sections.map((s) => (
                 <li key={s.id}>
@@ -66,10 +76,9 @@ export default function TokenServiceDocs() {
           {/* Content */}
           <div className="flex-1 max-w-3xl space-y-16">
             <section id="overview">
-              <h1 className="text-3xl font-bold text-foreground mb-4">API Documentation</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-4">{t('token_service.docs_title')}</h1>
               <p className="text-muted-foreground leading-relaxed">
-                VibeDir Token Service provides Claude and OpenAI-compatible API endpoints.
-                Use your existing SDKs — just change the base URL and API key.
+                {t('token_service.docs_overview_text')}
               </p>
               <div className="mt-6 p-4 rounded-lg border border-purple-500/20 bg-purple-500/5">
                 <p className="text-sm text-purple-300">
@@ -79,23 +88,23 @@ export default function TokenServiceDocs() {
             </section>
 
             <section id="authentication">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Authentication</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">{t('token_service.docs_auth_title')}</h2>
               <p className="text-muted-foreground mb-4">
-                All API requests require an API key passed in the <code className="text-purple-400">Authorization</code> header.
+                {t('token_service.docs_auth_text')}
               </p>
-              <CodeBlock language="bash" code={`curl https://api.vbcodingshow.com/v1/messages \\
+              <CodeBlock t={t} language="bash" code={`curl https://api.vbcodingshow.com/v1/messages \\
   -H "Authorization: Bearer vb-sk-your-api-key" \\
   -H "Content-Type: application/json" \\
   -d '{"model": "claude-3-sonnet-20240229", "max_tokens": 1024, "messages": [{"role": "user", "content": "Hello!"}]}'`} />
             </section>
 
             <section id="claude-api">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Claude API — Messages</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">{t('token_service.docs_claude_title')}</h2>
               <p className="text-muted-foreground mb-4">
-                Fully compatible with Anthropic's Messages API. Use the official <code className="text-purple-400">@anthropic-ai/sdk</code> package.
+                {t('token_service.docs_claude_text')}
               </p>
               <h3 className="text-lg font-semibold text-foreground mt-8 mb-3">Python</h3>
-              <CodeBlock language="python" code={`import anthropic
+              <CodeBlock t={t} language="python" code={`import anthropic
 
 client = anthropic.Anthropic(
     api_key="vb-sk-your-api-key",
@@ -113,7 +122,7 @@ message = client.messages.create(
 print(message.content[0].text)`} />
 
               <h3 className="text-lg font-semibold text-foreground mt-8 mb-3">Node.js</h3>
-              <CodeBlock language="typescript" code={`import Anthropic from '@anthropic-ai/sdk';
+              <CodeBlock t={t} language="typescript" code={`import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({
   apiKey: 'vb-sk-your-api-key',
@@ -132,11 +141,11 @@ console.log(message.content[0].text);`} />
             </section>
 
             <section id="openai-api">
-              <h2 className="text-2xl font-bold text-foreground mb-4">OpenAI API — Chat Completions</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">{t('token_service.docs_openai_title')}</h2>
               <p className="text-muted-foreground mb-4">
-                Also compatible with OpenAI's Chat Completions API.
+                {t('token_service.docs_openai_text')}
               </p>
-              <CodeBlock language="python" code={`from openai import OpenAI
+              <CodeBlock t={t} language="python" code={`from openai import OpenAI
 
 client = OpenAI(
     api_key="vb-sk-your-api-key",
@@ -152,7 +161,7 @@ response = client.chat.completions.create(
 )
 print(response.choices[0].message.content)`} />
 
-              <CodeBlock language="bash" code={`curl https://api.vbcodingshow.com/v1/chat/completions \\
+              <CodeBlock t={t} language="bash" code={`curl https://api.vbcodingshow.com/v1/chat/completions \\
   -H "Authorization: Bearer vb-sk-your-api-key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -163,11 +172,11 @@ print(response.choices[0].message.content)`} />
             </section>
 
             <section id="streaming">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Streaming</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">{t('token_service.docs_streaming_title')}</h2>
               <p className="text-muted-foreground mb-4">
-                Both Claude and OpenAI endpoints support server-sent events (SSE) streaming.
+                {t('token_service.docs_streaming_text')}
               </p>
-              <CodeBlock language="python" code={`# Claude streaming
+              <CodeBlock t={t} language="python" code={`# Claude streaming
 with client.messages.stream(
     model="claude-3-sonnet-20240229",
     max_tokens=1024,
@@ -178,14 +187,14 @@ with client.messages.stream(
             </section>
 
             <section id="models">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Supported Models</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">{t('token_service.docs_models_title')}</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b border-border/50">
-                      <th className="text-left py-3 px-4 text-foreground font-medium">Model ID</th>
-                      <th className="text-left py-3 px-4 text-foreground font-medium">Type</th>
-                      <th className="text-left py-3 px-4 text-foreground font-medium">Max Context</th>
+                      <th className="text-left py-3 px-4 text-foreground font-medium">{t('token_service.docs_model_id')}</th>
+                      <th className="text-left py-3 px-4 text-foreground font-medium">{t('token_service.docs_model_type')}</th>
+                      <th className="text-left py-3 px-4 text-foreground font-medium">{t('token_service.docs_model_context')}</th>
                     </tr>
                   </thead>
                   <tbody className="text-muted-foreground">
@@ -209,24 +218,18 @@ with client.messages.stream(
             </section>
 
             <section id="errors">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Error Handling</h2>
-              <p className="text-muted-foreground mb-4">Standard HTTP status codes are returned.</p>
+              <h2 className="text-2xl font-bold text-foreground mb-4">{t('token_service.docs_errors_title')}</h2>
+              <p className="text-muted-foreground mb-4">{t('token_service.docs_errors_text')}</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b border-border/50">
-                      <th className="text-left py-3 px-4 text-foreground font-medium">Code</th>
-                      <th className="text-left py-3 px-4 text-foreground font-medium">Meaning</th>
+                      <th className="text-left py-3 px-4 text-foreground font-medium">{t('token_service.docs_error_code')}</th>
+                      <th className="text-left py-3 px-4 text-foreground font-medium">{t('token_service.docs_error_meaning')}</th>
                     </tr>
                   </thead>
                   <tbody className="text-muted-foreground">
-                    {[
-                      ['401', 'Invalid or missing API key'],
-                      ['429', 'Rate limit exceeded'],
-                      ['402', 'Insufficient token balance'],
-                      ['500', 'Internal server error'],
-                      ['503', 'Model temporarily unavailable'],
-                    ].map(([code, msg]) => (
+                    {errorCodes.map(([code, msg]) => (
                       <tr key={code} className="border-b border-border/30">
                         <td className="py-3 px-4 font-mono text-red-400">{code}</td>
                         <td className="py-3 px-4">{msg}</td>
@@ -238,9 +241,9 @@ with client.messages.stream(
             </section>
 
             <section id="rate-limits">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Rate Limits</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">{t('token_service.docs_rate_limits_title')}</h2>
               <p className="text-muted-foreground mb-4">
-                Rate limits depend on your plan tier. Headers <code className="text-purple-400">X-RateLimit-Remaining</code> and <code className="text-purple-400">X-RateLimit-Reset</code> are included in every response.
+                {t('token_service.docs_rate_limits_text')}
               </p>
             </section>
           </div>

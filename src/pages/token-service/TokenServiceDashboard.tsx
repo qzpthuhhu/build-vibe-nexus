@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
 import { Activity, Coins, Key, Zap, TrendingUp, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-// Mock chart data (will be replaced with real data from api_request_logs)
 const usageData = Array.from({ length: 14 }, (_, i) => ({
   date: new Date(Date.now() - (13 - i) * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
   tokens: Math.floor(Math.random() * 50000 + 10000),
@@ -33,6 +33,7 @@ const StatCard = ({ icon: Icon, label, value, sub, color }: { icon: any; label: 
 
 export default function TokenServiceDashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [balance, setBalance] = useState<{ total_balance: number; used_balance: number } | null>(null);
   const [keyCount, setKeyCount] = useState(0);
 
@@ -50,8 +51,8 @@ export default function TokenServiceDashboard() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h2 className="text-2xl font-bold text-foreground">Sign in to access your dashboard</h2>
-          <Link to="/auth"><Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0">Sign In</Button></Link>
+          <h2 className="text-2xl font-bold text-foreground">{t('token_service.dashboard_sign_in_title')}</h2>
+          <Link to="/auth"><Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0">{t('token_service.dashboard_sign_in')}</Button></Link>
         </div>
       </div>
     );
@@ -64,30 +65,28 @@ export default function TokenServiceDashboard() {
       <div className="container">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Monitor your API usage and manage resources</p>
+            <h1 className="text-2xl font-bold text-foreground">{t('token_service.dashboard_title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('token_service.dashboard_subtitle')}</p>
           </div>
           <Link to="/token-service/api-keys">
             <Button variant="outline" className="gap-2 border-purple-500/30">
-              <Key className="h-4 w-4" /> Manage Keys
+              <Key className="h-4 w-4" /> {t('token_service.dashboard_manage_keys')}
             </Button>
           </Link>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={Coins} label="Token Balance" value={remaining.toLocaleString()} sub="remaining" color="bg-purple-500/10 text-purple-400" />
-          <StatCard icon={Activity} label="Requests Today" value="—" sub="today" color="bg-blue-500/10 text-blue-400" />
-          <StatCard icon={Key} label="Active Keys" value={String(keyCount)} color="bg-cyan-500/10 text-cyan-400" />
-          <StatCard icon={Clock} label="Avg Latency" value="—" sub="ms" color="bg-green-500/10 text-green-400" />
+          <StatCard icon={Coins} label={t('token_service.dashboard_token_balance')} value={remaining.toLocaleString()} sub={t('token_service.dashboard_remaining')} color="bg-purple-500/10 text-purple-400" />
+          <StatCard icon={Activity} label={t('token_service.dashboard_requests_today')} value="—" sub={t('token_service.dashboard_today')} color="bg-blue-500/10 text-blue-400" />
+          <StatCard icon={Key} label={t('token_service.dashboard_active_keys')} value={String(keyCount)} color="bg-cyan-500/10 text-cyan-400" />
+          <StatCard icon={Clock} label={t('token_service.dashboard_avg_latency')} value="—" sub="ms" color="bg-green-500/10 text-green-400" />
         </div>
 
-        {/* Charts */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-medium flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-purple-400" /> Token Usage (14 days)
+                <TrendingUp className="h-4 w-4 text-purple-400" /> {t('token_service.dashboard_token_usage')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -111,7 +110,7 @@ export default function TokenServiceDashboard() {
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-medium flex items-center gap-2">
-                <Zap className="h-4 w-4 text-blue-400" /> Requests (14 days)
+                <Zap className="h-4 w-4 text-blue-400" /> {t('token_service.dashboard_requests_chart')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -127,14 +126,13 @@ export default function TokenServiceDashboard() {
           </Card>
         </div>
 
-        {/* Recent Requests */}
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-base font-medium">Recent Requests</CardTitle>
+            <CardTitle className="text-base font-medium">{t('token_service.dashboard_recent_requests')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground text-center py-8">
-              No requests yet. Create an API key and start making calls to see your activity here.
+              {t('token_service.dashboard_no_requests')}
             </div>
           </CardContent>
         </Card>
