@@ -471,6 +471,7 @@ export default function AdminDashboard() {
           { key: 'batch' as AdminTab, label: '批量提交', icon: Upload },
           { key: 'users' as AdminTab, label: '用户管理', icon: Users },
           { key: 'stats' as AdminTab, label: '内容统计', icon: BarChart3 },
+          { key: 'providers' as AdminTab, label: '服务商管理', icon: Globe },
         ]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
