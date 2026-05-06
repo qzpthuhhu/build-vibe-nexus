@@ -129,3 +129,14 @@
 .stagger-2 { animation-delay: 160ms; }
 .stagger-3 { animation-delay: 240ms; }
 .stagger-4 { animation-delay: 320ms; }
+
+/* Playground markdown prose overrides */
+.prose-playground {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: hsl(var(--foreground));
+}
+.prose-playground > :first-child { margin-top: 0; }
+.prose-playground > :last-child { margin-bottom: 0; }
+.prose-playground pre { margin: 0 !important; }
+.prose-playground .hljs { background: transparent !important; padding: 0 !important; }
