@@ -270,8 +270,7 @@
     "nav_dashboard": "控制台",
     "nav_api_keys": "API 密钥",
     "token_dashboard": "Token 控制台",
-
-    "home_badge": "现已上线 — 兼容 Claude 3.5 Sonnet",
+    "home_badge": "现已上线 — 兼容 Claude Opus 4.7 & GPT-5.5",
     "home_title_1": "兼容 Claude 的",
     "home_title_2": "API 基础设施",
     "home_subtitle": "直接使用 Claude / OpenAI SDK。由新一代基座模型驱动。无需修改代码 — 只需更换 Base URL。",
@@ -300,7 +299,6 @@
     "home_cta_subtitle": "几秒钟获取 API 密钥。附赠 10,000 免费 Token。",
     "home_get_started": "免费开始",
     "home_view_pricing": "查看价格",
-
     "pricing_title": "简单透明的定价",
     "pricing_subtitle": "按用量付费。从原型到生产，成本可预测。",
     "pricing_free": "免费版",
@@ -327,10 +325,9 @@
     "pricing_faq_q2": "可以随时切换套餐吗？",
     "pricing_faq_a2": "可以，随时升级或降级，立即生效，费用按比例计算。",
     "pricing_faq_q3": "支持哪些模型？",
-    "pricing_faq_a3": "我们支持 Claude 3 Opus、Sonnet 和 Haiku，以及兼容 OpenAI GPT-4 和 GPT-3.5 的端点。",
+    "pricing_faq_a3": "我们支持 Claude Opus 4.7、Sonnet 4.6 和 Haiku 4.5，以及兼容 OpenAI GPT-5.5、GPT-5.2 和 GPT-5.4 Mini 的端点。",
     "pricing_faq_q4": "超额会收费吗？",
     "pricing_faq_a4": "超出套餐限制后请求会被限速，不会额外收费。升级套餐可获得更高限额。",
-
     "docs_title": "API 文档",
     "docs_overview": "概览",
     "docs_auth": "身份验证",
@@ -367,7 +364,6 @@
     "docs_rate_limits_text": "速率限制取决于你的套餐等级。每个响应的头部包含 X-RateLimit-Remaining 和 X-RateLimit-Reset。",
     "docs_copied": "已复制",
     "docs_copy": "复制",
-
     "dashboard_title": "控制台",
     "dashboard_subtitle": "监控 API 使用情况和管理资源",
     "dashboard_manage_keys": "管理密钥",
@@ -383,7 +379,6 @@
     "dashboard_no_requests": "暂无请求。创建 API 密钥并开始调用，这里将显示你的活动。",
     "dashboard_sign_in_title": "登录以访问控制台",
     "dashboard_sign_in": "登录",
-
     "api_keys_title": "API 密钥",
     "api_keys_subtitle": "管理用于访问 Token 服务的 API 密钥",
     "api_keys_create": "创建密钥",
@@ -401,7 +396,6 @@
     "api_keys_create_failed": "创建密钥失败",
     "api_keys_revoked": "密钥已撤销",
     "api_keys_sign_in_title": "登录以管理 API 密钥",
-
     "playground_title": "Playground 体验",
     "playground_subtitle": "在集成前交互式测试 API 调用",
     "playground_send_hint": "发送消息开始测试",
