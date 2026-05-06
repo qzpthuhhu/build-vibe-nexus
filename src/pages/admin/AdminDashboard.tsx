@@ -22,8 +22,9 @@ import { sendTransactionalEmail, getSiteUrl } from '@/lib/email';
 import MediaGallery from '@/components/MediaGallery';
 import AdminReviewPanel from '@/components/admin/AdminReviewPanel';
 import AdminProvidersPanel from '@/components/admin/AdminProvidersPanel';
+import AdminOrdersPanel from '@/components/admin/AdminOrdersPanel';
 
-type AdminTab = 'review' | 'users' | 'stats' | 'batch' | 'providers';
+type AdminTab = 'review' | 'users' | 'stats' | 'batch' | 'providers' | 'orders';
 
 interface BatchItem {
   url: string;
