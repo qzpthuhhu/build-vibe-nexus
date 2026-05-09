@@ -1,5 +1,3 @@
 {
-  "imports": {
-    "js-tiktoken": "npm:js-tiktoken@1.0.15"
-  }
+  "imports": {}
 }

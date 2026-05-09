@@ -924,6 +924,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ai_proxy_finalize: {
+        Args: {
+          _api_key_id: string
+          _billed_tokens: number
+          _completion_tokens: number
+          _is_stream: boolean
+          _latency_ms: number
+          _model_actual: string
+          _model_requested: string
+          _prompt_tokens: number
+          _status_code: number
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      ai_proxy_preflight: {
+        Args: { _key_hash: string; _source_model: string }
+        Returns: Json
+      }
       deduct_tokens: {
         Args: { _amount: number; _user_id: string }
         Returns: number
